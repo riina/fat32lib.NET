@@ -10,7 +10,7 @@ which itself is a modified version of the library fat32-lib obtained from
 
 https://github.com/waldheinz/fat32-lib
 
-which is, according to its README, `originally based on the FAT file system driver included in the JNode operating system`
+which is, according to its README, originally based on the FAT file system driver included in the JNode operating system
 
 ## Information
 
