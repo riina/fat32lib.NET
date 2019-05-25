@@ -6,7 +6,7 @@ This library (fat32lib.NET) is a port of the library fat32lib obtained from
 
 https://android.googlesource.com/platform/external/fat32lib/
 
-which itself is a modified version of the library
+which itself is a modified version of the library fat32-lib obtained from
 
 https://github.com/waldheinz/fat32-lib
 
@@ -26,4 +26,4 @@ Javadoc comments have been converted to XML-style C# documentation.
 
 Normal comments have been preserved.
 
-A sample basic extraction program can be found at `src/FAT32Lib/FAT32Lib.Test`
+A sample basic extraction program can be found at `src/FAT32Lib/FAT32Lib.Test`.
