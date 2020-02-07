@@ -38,7 +38,7 @@ namespace FAT32Lib.Fat {
     /// </summary>
     public sealed class FatLfnDirectoryEntry : AbstractFsObject, IFsDirectoryEntry {
 
-        internal readonly FatDirectoryEntry realEntry;
+        internal readonly FatDirectoryEntry RealEntry;
 
         private FatLfnDirectory parent;
         private string fileName;
@@ -47,24 +47,24 @@ namespace FAT32Lib.Fat {
             this.parent = parent;
             fileName = name;
 
-            long now = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
-            realEntry = FatDirectoryEntry.Create(directory);
-            realEntry.SetShortName(sn);
-            realEntry.SetCreated(now);
-            realEntry.SetLastAccessed(now);
+            var now = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
+            RealEntry = FatDirectoryEntry.Create(directory);
+            RealEntry.SetShortName(sn);
+            RealEntry.SetCreated(now);
+            RealEntry.SetLastAccessed(now);
         }
 
         internal FatLfnDirectoryEntry(FatLfnDirectory parent,
                 FatDirectoryEntry realEntry, string fileName) : base(parent.IsReadOnly()) {
             this.parent = parent;
-            this.realEntry = realEntry;
+            this.RealEntry = realEntry;
             this.fileName = fileName;
         }
 
         internal static FatLfnDirectoryEntry Extract(
                 FatLfnDirectory dir, int offset, int len) {
 
-            FatDirectoryEntry realEntry = dir.dir.GetEntry(offset + len - 1);
+            var realEntry = dir.Dir.GetEntry(offset + len - 1);
             string fileName;
 
             if (len == 1) {
@@ -73,10 +73,10 @@ namespace FAT32Lib.Fat {
             }
             else {
                 /* stored in reverse order */
-                StringBuilder name = new StringBuilder(13 * (len - 1));
+                var name = new StringBuilder(13 * (len - 1));
 
-                for (int i = len - 2; i >= 0; i--) {
-                    FatDirectoryEntry entry = dir.dir.GetEntry(i + offset);
+                for (var i = len - 2; i >= 0; i--) {
+                    var entry = dir.Dir.GetEntry(i + offset);
                     name.Append(entry.GetLfnPart());
                 }
 
@@ -92,7 +92,7 @@ namespace FAT32Lib.Fat {
         /// <returns>if this is a hidden directory entry</returns>
         /// <seealso cref="SetHiddenFlag(bool)"/>
         public bool IsHiddenFlag() {
-            return realEntry.IsHiddenFlag();
+            return RealEntry.IsHiddenFlag();
         }
 
         /// <summary>
@@ -105,7 +105,7 @@ namespace FAT32Lib.Fat {
         public void SetHiddenFlag(bool hidden) {
             CheckWritable();
 
-            realEntry.SetHiddenFlag(hidden);
+            RealEntry.SetHiddenFlag(hidden);
         }
 
         /// <summary>
@@ -114,7 +114,7 @@ namespace FAT32Lib.Fat {
         /// <returns>if this is a "system" directory entry</returns>
         /// <seealso cref="SetSystemFlag(bool)"/>
         public bool IsSystemFlag() {
-            return realEntry.IsSystemFlag();
+            return RealEntry.IsSystemFlag();
         }
 
         /// <summary>
@@ -127,7 +127,7 @@ namespace FAT32Lib.Fat {
         public void SetSystemFlag(bool systemEntry) {
             CheckWritable();
 
-            realEntry.SetSystemFlag(systemEntry);
+            RealEntry.SetSystemFlag(systemEntry);
         }
 
         /// <summary>
@@ -137,7 +137,7 @@ namespace FAT32Lib.Fat {
         /// <returns>if this entry has the read-only flag set</returns>
         /// <seealso cref="SetReadOnlyFlag(bool)"/>
         public bool IsReadOnlyFlag() {
-            return realEntry.IsReadonlyFlag();
+            return RealEntry.IsReadonlyFlag();
         }
 
         /// <summary>
@@ -153,7 +153,7 @@ namespace FAT32Lib.Fat {
         public void SetReadOnlyFlag(bool readOnly) {
             CheckWritable();
 
-            realEntry.SetReadonlyFlag(readOnly);
+            RealEntry.SetReadonlyFlag(readOnly);
         }
 
         /// <summary>
@@ -161,7 +161,7 @@ namespace FAT32Lib.Fat {
         /// </summary>
         /// <returns>if this entry has the archive flag set</returns>
         public bool IsArchiveFlag() {
-            return realEntry.IsArchiveFlag();
+            return RealEntry.IsArchiveFlag();
         }
 
         /// <summary>
@@ -174,11 +174,11 @@ namespace FAT32Lib.Fat {
         public void SetArchiveFlag(bool archive) {
             CheckWritable();
 
-            realEntry.SetArchiveFlag(archive);
+            RealEntry.SetArchiveFlag(archive);
         }
 
         private int TotalEntrySize() {
-            int result = (fileName.Length / 13) + 1;
+            var result = (fileName.Length / 13) + 1;
 
             if ((fileName.Length % 13) != 0) {
                 result++;
@@ -188,22 +188,22 @@ namespace FAT32Lib.Fat {
         }
 
         internal FatDirectoryEntry[] CompactForm() {
-            if (realEntry.GetShortName().Equals(ShortName.DOT) ||
-                    realEntry.GetShortName().Equals(ShortName.DOT_DOT) ||
-                    realEntry.HasShortNameOnly) {
+            if (RealEntry.GetShortName().Equals(ShortName.Dot) ||
+                    RealEntry.GetShortName().Equals(ShortName.DotDot) ||
+                    RealEntry.HasShortNameOnly) {
                 /* the dot entries must not have a LFN */
-                return new FatDirectoryEntry[] { realEntry };
+                return new FatDirectoryEntry[] { RealEntry };
             }
 
-            int totalEntrySize = TotalEntrySize();
+            var totalEntrySize = TotalEntrySize();
 
-            FatDirectoryEntry[] entries =
+            var entries =
                     new FatDirectoryEntry[totalEntrySize];
 
-            byte checkSum = realEntry.GetShortName().CheckSum();
-            int j = 0;
+            var checkSum = RealEntry.GetShortName().CheckSum();
+            var j = 0;
 
-            for (int i = totalEntrySize - 2; i > 0; i--) {
+            for (var i = totalEntrySize - 2; i > 0; i--) {
                 entries[i] = CreatePart(fileName.Substring(j * 13, j * 13 + 13),
                         j + 1, checkSum, false);
                 j++;
@@ -212,7 +212,7 @@ namespace FAT32Lib.Fat {
             entries[0] = CreatePart(fileName.Substring(j * 13),
                     j + 1, checkSum, true);
 
-            entries[totalEntrySize - 1] = realEntry;
+            entries[totalEntrySize - 1] = RealEntry;
 
             return entries;
         }
@@ -260,25 +260,25 @@ namespace FAT32Lib.Fat {
 
         public void SetLastModified(long lastModified) {
             CheckWritable();
-            realEntry.SetLastModified(lastModified);
+            RealEntry.SetLastModified(lastModified);
         }
 
         public IFsFile GetFile() {
-            return parent.GetFile(realEntry);
+            return parent.GetFile(RealEntry);
         }
 
         public IFsDirectory GetDirectory() {
-            return parent.GetDirectory(realEntry);
+            return parent.GetDirectory(RealEntry);
         }
 
         private static FatDirectoryEntry CreatePart(string subName,
                 int ordinal, byte checkSum, bool isLast) {
 
-            char[] unicodechar = new char[13];
-            char[] c2 = subName.ToCharArray();
+            var unicodechar = new char[13];
+            var c2 = subName.ToCharArray();
             Array.Copy(c2, unicodechar, subName.Length);
 
-            for (int i = subName.Length; i < 13; i++) {
+            for (var i = subName.Length; i < 13; i++) {
                 if (i == subName.Length) {
                     unicodechar[i] = (char)0x0000;
                 }
@@ -287,7 +287,7 @@ namespace FAT32Lib.Fat {
                 }
             }
 
-            byte[] rawData = new byte[FatDirectoryEntry.SIZE];
+            var rawData = new byte[FatDirectoryEntry.SIZE];
 
             if (isLast) {
                 LittleEndian.SetInt8(rawData, 0, ordinal + (1 << 6));
@@ -320,27 +320,27 @@ namespace FAT32Lib.Fat {
         }
 
         public long GetLastModified() {
-            return realEntry.GetLastModified();
+            return RealEntry.GetLastModified();
         }
 
         public long GetCreated() {
-            return realEntry.GetCreated();
+            return RealEntry.GetCreated();
         }
 
         public long GetLastAccessed() {
-            return realEntry.GetLastAccessed();
+            return RealEntry.GetLastAccessed();
         }
 
         public bool IsFile() {
-            return realEntry.IsFile();
+            return RealEntry.IsFile();
         }
 
         public bool IsDirectory() {
-            return realEntry.IsDirectory();
+            return RealEntry.IsDirectory();
         }
 
         public bool IsDirty() {
-            return realEntry.IsDirty();
+            return RealEntry.IsDirty();
         }
 
     }

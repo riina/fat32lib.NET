@@ -30,15 +30,15 @@ namespace FAT32Lib.Fat {
     /// </summary>
     public abstract class FatType {
 
-        public static readonly FatType BASE_FAT12 = new FAT12();
-        public static readonly FatType BASE_FAT16 = new FAT16();
-        public static readonly FatType BASE_FAT32 = new FAT32();
+        public static readonly FatType BaseFat12 = new Fat12();
+        public static readonly FatType BaseFat16 = new Fat16();
+        public static readonly FatType BaseFat32 = new Fat32();
 
         public static IEnumerable<FatType> Values {
             get {
-                yield return BASE_FAT12;
-                yield return BASE_FAT16;
-                yield return BASE_FAT32;
+                yield return BaseFat12;
+                yield return BaseFat16;
+                yield return BaseFat32;
             }
         }
 
@@ -108,25 +108,24 @@ namespace FAT32Lib.Fat {
         /// <summary>
         /// Represents a 12-bit file allocation table.
         /// </summary>
-        internal sealed class FAT12 : FatType {
-            internal FAT12() : base((1 << 12) - 16, 0xFFFL, 1.5f, "FAT12   ") { }
+        internal sealed class Fat12 : FatType {
+            internal Fat12() : base((1 << 12) - 16, 0xFFFL, 1.5f, "FAT12   ") { }
 
             internal override long ReadEntry(byte[] data, int index) {
-                int idx = (int)(index * 1.5);
-                int b1 = data[idx] & 0xFF;
-                int b2 = data[idx + 1] & 0xFF;
-                int v = (b2 << 8) | b1;
+                var idx = (int)(index * 1.5);
+                var b1 = data[idx] & 0xFF;
+                var b2 = data[idx + 1] & 0xFF;
+                var v = (b2 << 8) | b1;
 
                 if ((index % 2) == 0) {
                     return v & 0xFFF;
                 }
-                else {
-                    return v >> 4;
-                }
+
+                return v >> 4;
             }
 
             internal override void WriteEntry(byte[] data, int index, long entry) {
-                int idx = (int)(index * 1.5);
+                var idx = (int)(index * 1.5);
 
                 if ((index % 2) == 0) {
                     data[idx] = (byte)(entry & 0xFF);
@@ -142,18 +141,18 @@ namespace FAT32Lib.Fat {
         /// <summary>
         /// Represents a 16-bit file allocation table.
         /// </summary>
-        internal sealed class FAT16 : FatType {
-            internal FAT16() : base((1 << 16) - 16, 0xFFFFL, 2.0f, "FAT16   ") { }
+        internal sealed class Fat16 : FatType {
+            internal Fat16() : base((1 << 16) - 16, 0xFFFFL, 2.0f, "FAT16   ") { }
 
             internal override long ReadEntry(byte[] data, int index) {
-                int idx = index << 1;
-                int b1 = data[idx] & 0xFF;
-                int b2 = data[idx + 1] & 0xFF;
+                var idx = index << 1;
+                var b1 = data[idx] & 0xFF;
+                var b2 = data[idx + 1] & 0xFF;
                 return (b2 << 8) | b1;
             }
 
             internal override void WriteEntry(byte[] data, int index, long entry) {
-                int idx = index << 1;
+                var idx = index << 1;
                 data[idx] = (byte)(entry & 0xFF);
                 data[idx + 1] = (byte)((entry >> 8) & 0xFF);
             }
@@ -162,11 +161,11 @@ namespace FAT32Lib.Fat {
         /// <summary>
         /// Represents a 32-bit file allocation table.
         /// </summary>
-        internal sealed class FAT32 : FatType {
-            internal FAT32() : base((1 << 28) - 16, 0xFFFFFFFFL, 4.0f, "FAT32   ") { }
+        internal sealed class Fat32 : FatType {
+            internal Fat32() : base((1 << 28) - 16, 0xFFFFFFFFL, 4.0f, "FAT32   ") { }
 
             internal override long ReadEntry(byte[] data, int index) {
-                int idx = index * 4;
+                var idx = index * 4;
                 long l1 = data[idx] & 0xFF;
                 long l2 = data[idx + 1] & 0xFF;
                 long l3 = data[idx + 2] & 0xFF;
@@ -175,7 +174,7 @@ namespace FAT32Lib.Fat {
             }
 
             internal override void WriteEntry(byte[] data, int index, long entry) {
-                int idx = index << 2;
+                var idx = index << 2;
                 data[idx] = (byte)(entry & 0xFF);
                 data[idx + 1] = (byte)((entry >> 8) & 0xFF);
                 data[idx + 2] = (byte)((entry >> 16) & 0xFF);

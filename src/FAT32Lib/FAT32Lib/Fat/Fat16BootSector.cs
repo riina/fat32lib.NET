@@ -24,12 +24,10 @@ using System;
 using System.Text;
 
 namespace FAT32Lib.Fat {
-
     /// <summary>
     /// The boot sector layout as used by the FAT12 / FAT16 variants.
     /// </summary>
     public sealed class Fat16BootSector : BootSector {
-
         /// <summary>
         /// The default number of entries for the root directory.
         /// </summary>
@@ -73,7 +71,7 @@ namespace FAT32Lib.Fat {
         /// <summary>
         /// Offset to the FAT file system type string.
         /// </summary>
-        /// <seealso cref="BootSector.GetFileSystemTypeLabel"
+        /// <seealso cref="BootSector.GetFileSystemTypeLabel"/>
         public const int FILE_SYSTEM_TYPE_OFFSET = 0x36;
 
         /// <summary>
@@ -87,17 +85,18 @@ namespace FAT32Lib.Fat {
         /// Creates a new <see cref="Fat16BootSector"/> for the specified device.
         /// </summary>
         /// <param name="device">the <see cref="IBlockDevice"/> holding the boot sector</param>
-        public Fat16BootSector(IBlockDevice device) : base(device) { }
+        public Fat16BootSector(IBlockDevice device) : base(device) {
+        }
 
         /// <summary>
         /// Returns the volume label that is stored in this boot sector.
         /// </summary>
         /// <returns>the volume label</returns>
         public string GetVolumeLabel() {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
-            for (int i = 0; i < MAX_VOLUME_LABEL_LENGTH; i++) {
-                char c = (char)Get8(VOLUME_LABEL_OFFSET + i);
+            for (var i = 0; i < MAX_VOLUME_LABEL_LENGTH; i++) {
+                var c = (char) Get8(VOLUME_LABEL_OFFSET + i);
 
                 if (c != 0) {
                     sb.Append(c);
@@ -127,9 +126,9 @@ namespace FAT32Lib.Fat {
             if (label.Length > MAX_VOLUME_LABEL_LENGTH)
                 throw new ArgumentException("volume label too long");
 
-            for (int i = 0; i < MAX_VOLUME_LABEL_LENGTH; i++) {
+            for (var i = 0; i < MAX_VOLUME_LABEL_LENGTH; i++) {
                 Set8(VOLUME_LABEL_OFFSET + i,
-                        i < label.Length ? label[i] : 0);
+                    i < label.Length ? label[i] : 0);
             }
         }
 
@@ -147,25 +146,26 @@ namespace FAT32Lib.Fat {
         /// <param name="v">the new number of sectors per fat</param>
         public override void SetSectorsPerFat(long v) {
             if (v == GetSectorsPerFat()) return;
-            if (v > 0x7FFF) throw new ArgumentException(
+            if (v > 0x7FFF)
+                throw new ArgumentException(
                     "too many sectors for a FAT12/16");
 
-            Set16(SECTORS_PER_FAT_OFFSET, (int)v);
+            Set16(SECTORS_PER_FAT_OFFSET, (int) v);
         }
 
         public override FatType GetFatType() {
             long rootDirSectors = ((GetRootDirEntryCount() * 32) +
-                    (GetBytesPerSector() - 1)) / GetBytesPerSector();
-            long dataSectors = GetSectorCount() -
-                    (GetNrReservedSectors() + (GetNrFats() * GetSectorsPerFat()) +
-                    rootDirSectors);
-            long clusterCount = dataSectors / GetSectorsPerCluster();
+                                   (GetBytesPerSector() - 1)) / GetBytesPerSector();
+            var dataSectors = GetSectorCount() -
+                              (GetNrReservedSectors() + (GetNrFats() * GetSectorsPerFat()) +
+                               rootDirSectors);
+            var clusterCount = dataSectors / GetSectorsPerCluster();
 
-            if (clusterCount > MAX_FAT16_CLUSTERS) throw new InvalidOperationException(
+            if (clusterCount > MAX_FAT16_CLUSTERS)
+                throw new InvalidOperationException(
                     "too many clusters for FAT12/16: " + clusterCount);
 
-            return clusterCount > MAX_FAT12_CLUSTERS ?
-                FatType.BASE_FAT16 : FatType.BASE_FAT12;
+            return clusterCount > MAX_FAT12_CLUSTERS ? FatType.BaseFat16 : FatType.BaseFat12;
         }
 
         public override void SetSectorCount(long count) {
@@ -174,14 +174,14 @@ namespace FAT32Lib.Fat {
                 SetNrTotalSectors(count);
             }
             else {
-                SetNrLogicalSectors((int)count);
+                SetNrLogicalSectors((int) count);
                 SetNrTotalSectors(count);
             }
         }
 
         public override long GetSectorCount() {
             if (GetNrLogicalSectors() == 0) return GetNrTotalSectors();
-            else return GetNrLogicalSectors();
+            return GetNrLogicalSectors();
         }
 
         /// <summary>
@@ -217,7 +217,5 @@ namespace FAT32Lib.Fat {
         public override int GetExtendedBootSignatureOffset() {
             return EXTENDED_BOOT_SIGNATURE_OFFSET;
         }
-
     }
-
 }

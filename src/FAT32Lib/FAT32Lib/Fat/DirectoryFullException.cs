@@ -49,7 +49,7 @@ namespace FAT32Lib.Fat {
         /// Returns the current capacity of the directory.
         /// </summary>
         /// <returns>the current capacity</returns>
-        public int getCurrentCapacity() {
+        public int GetCurrentCapacity() {
             return currentCapacity;
         }
 
@@ -57,7 +57,7 @@ namespace FAT32Lib.Fat {
         /// Returns the capacity the directory tried to grow, which did not succeed.
         /// </summary>
         /// <returns>the requested capacity</returns>
-        public int getRequestedCapacity() {
+        public int GetRequestedCapacity() {
             return requestedCapacity;
         }
 

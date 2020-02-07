@@ -43,15 +43,15 @@ namespace FAT32Lib.Fat {
         /// The <see cref="ClusterChain"/> that stores this directory. Package-visible
         /// for testing.
         /// </summary>
-        internal readonly ClusterChain chain;
+        internal readonly ClusterChain Chain;
 
         internal ClusterChainDirectory(ClusterChain chain, bool isRoot)
                 : base((int)(chain.GetLengthOnDisk() / FatDirectoryEntry.SIZE), chain.IsReadOnly(), isRoot) {
-            this.chain = chain;
+            this.Chain = chain;
         }
 
         public static ClusterChainDirectory ReadRoot(ClusterChain chain) {
-            ClusterChainDirectory result = new ClusterChainDirectory(chain, true);
+            var result = new ClusterChainDirectory(chain, true);
 
             result.Read();
             return result;
@@ -59,37 +59,37 @@ namespace FAT32Lib.Fat {
 
         public static ClusterChainDirectory CreateRoot(Fat fat) {
 
-            if (fat.GetFatType() != FatType.BASE_FAT32) {
+            if (fat.GetFatType() != FatType.BaseFat32) {
                 throw new ArgumentException(
                         "only FAT32 stores root directory in a cluster chain");
             }
 
-            Fat32BootSector bs = (Fat32BootSector)fat.GetBootSector();
-            ClusterChain cc = new ClusterChain(fat, false);
+            var bs = (Fat32BootSector)fat.GetBootSector();
+            var cc = new ClusterChain(fat, false);
             cc.SetChainLength(1);
 
             bs.SetRootDirFirstCluster(cc.GetStartCluster());
 
-            ClusterChainDirectory result =
+            var result =
                     new ClusterChainDirectory(cc, true);
 
             result.Flush();
             return result;
         }
         protected override void Read(MemoryStream data) {
-            chain.ReadData(0, data);
+            Chain.ReadData(0, data);
         }
 
         protected override void Write(MemoryStream data) {
-            int toWrite = (int)(data.Length - data.Position);
-            chain.WriteData(0, data);
-            long trueSize = chain.GetLengthOnDisk();
+            var toWrite = (int)(data.Length - data.Position);
+            Chain.WriteData(0, data);
+            var trueSize = Chain.GetLengthOnDisk();
 
             /* TODO: check if the code below is really needed */
             if (trueSize > toWrite) {
-                int rest = (int)(trueSize - toWrite);
-                MemoryStream fill = new MemoryStream(rest);
-                chain.WriteData(toWrite, fill);
+                var rest = (int)(trueSize - toWrite);
+                var fill = new MemoryStream(rest);
+                Chain.WriteData(toWrite, fill);
             }
         }
 
@@ -100,24 +100,24 @@ namespace FAT32Lib.Fat {
         /// <returns>the first storage cluster of this directory</returns>
         /// <seealso cref="AbstractDirectory.IsRoot"/>
         protected override long GetStorageCluster() {
-            return IsRoot() ? 0 : chain.GetStartCluster();
+            return IsRoot() ? 0 : Chain.GetStartCluster();
         }
 
         public void Delete() {
-            chain.SetChainLength(0);
+            Chain.SetChainLength(0);
         }
 
         internal override void ChangeSize(int entryCount) {
             if (entryCount == 0)
                 throw new Exception();
 
-            int size = entryCount * FatDirectoryEntry.SIZE;
+            var size = entryCount * FatDirectoryEntry.SIZE;
 
             if (size > MAX_SIZE) throw new DirectoryFullException(
                     "directory would grow beyond " + MAX_SIZE + " bytes",
                     GetCapacity(), entryCount);
 
-            SizeChanged(chain.SetSize(Math.Max(size, chain.GetClusterSize())));
+            SizeChanged(Chain.SetSize(Math.Max(size, Chain.GetClusterSize())));
         }
 
     }

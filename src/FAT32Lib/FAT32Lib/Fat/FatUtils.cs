@@ -25,6 +25,7 @@ namespace FAT32Lib.Fat {
 
     public static class FatUtils {
 
+        /// <summary>
         /// Gets the offset (in bytes) of the fat with the given index
         /// </summary>
         /// <param name="bs"></param>
@@ -33,11 +34,11 @@ namespace FAT32Lib.Fat {
         /// <exception cref="System.IO.IOException"></exception>
         public static long GetFatOffset(BootSector bs, int fatNr) {
             long sectSize = bs.GetBytesPerSector();
-            long sectsPerFat = bs.GetSectorsPerFat();
+            var sectsPerFat = bs.GetSectorsPerFat();
             long resSects = bs.GetNrReservedSectors();
 
-            long offset = resSects * sectSize;
-            long fatSize = sectsPerFat * sectSize;
+            var offset = resSects * sectSize;
+            var fatSize = sectsPerFat * sectSize;
 
             offset += fatNr * fatSize;
 
@@ -52,10 +53,10 @@ namespace FAT32Lib.Fat {
         /// <exception cref="System.IO.IOException"></exception>
         public static long GetRootDirOffset(BootSector bs) {
             long sectSize = bs.GetBytesPerSector();
-            long sectsPerFat = bs.GetSectorsPerFat();
-            int fats = bs.GetNrFats();
+            var sectsPerFat = bs.GetSectorsPerFat();
+            var fats = bs.GetNrFats();
 
-            long offset = GetFatOffset(bs, 0);
+            var offset = GetFatOffset(bs, 0);
 
             offset += fats * sectsPerFat * sectSize;
 
@@ -69,7 +70,7 @@ namespace FAT32Lib.Fat {
         /// <returns>long</returns>
         /// <exception cref="System.IO.IOException"></exception>
         public static long GetFilesOffset(BootSector bs) {
-            long offset = GetRootDirOffset(bs);
+            var offset = GetRootDirOffset(bs);
 
             offset += bs.GetRootDirEntryCount() * 32;
 

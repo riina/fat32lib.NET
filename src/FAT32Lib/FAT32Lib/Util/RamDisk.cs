@@ -51,13 +51,13 @@ namespace FAT32Lib.Util {
         /// <returns>the decompressed <see cref="RamDisk"/></returns>
         /// <exception cref="IOException">IOException on read or decompression error</exception>
         public static RamDisk ReadGzipped(Stream inStream) {
-            GZipStream zis = new GZipStream(inStream, CompressionMode.Decompress);
-            MemoryStream decompressedStream = new MemoryStream();
+            var zis = new GZipStream(inStream, CompressionMode.Decompress);
+            var decompressedStream = new MemoryStream();
 
-            byte[] buffer = new byte[4096];
+            var buffer = new byte[4096];
 
-            int read = zis.Read(buffer, 0, buffer.Length);
-            int total = 0;
+            var read = zis.Read(buffer, 0, buffer.Length);
+            var total = 0;
 
             while (read >= 0) {
                 total += read;
@@ -68,8 +68,8 @@ namespace FAT32Lib.Util {
             if (total < DEFAULT_SECTOR_SIZE) throw new IOException(
                     "read only " + total + " bytes");
 
-            byte[] buf = new byte[total];
-            MemoryStream targetStream = new MemoryStream(buf);
+            var buf = new byte[total];
+            var targetStream = new MemoryStream(buf);
             decompressedStream.Position = 0;
             decompressedStream.CopyTo(targetStream);
             return new RamDisk(targetStream, DEFAULT_SECTOR_SIZE);
@@ -102,7 +102,7 @@ namespace FAT32Lib.Util {
 
             this.sectorSize = sectorSize;
             this.size = size;
-            byte[] buf = new byte[size];
+            var buf = new byte[size];
             data = new MemoryStream(buf);
         }
 
@@ -116,7 +116,7 @@ namespace FAT32Lib.Util {
 
 
             if (devOffset > GetSize()) {
-                StringBuilder sb = new StringBuilder();
+                var sb = new StringBuilder();
                 sb.Append("read at ").Append(devOffset);
                 sb.Append(" is off size (").Append(GetSize()).Append(")");
 

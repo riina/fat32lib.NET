@@ -39,7 +39,7 @@ namespace FAT32Lib.Fat {
         /// <param name="dosTime"></param>
         /// <returns></returns>
         public static long DecodeDateTime(int dosDate, int dosTime) {
-            DateTime dt = new DateTime(1980, 1, 1);
+            var dt = new DateTime(1980, 1, 1);
 
             dt.AddMilliseconds(0);
             dt.AddSeconds((dosTime & 0x1f) * 2);
@@ -59,7 +59,7 @@ namespace FAT32Lib.Fat {
         /// <param name="javaDateTime"></param>
         /// <returns></returns>
         public static int EncodeTime(long javaDateTime) {
-            DateTime dt = new DateTime(1970, 1, 1);
+            var dt = new DateTime(1970, 1, 1);
             dt.AddMilliseconds(javaDateTime);
             return 2048 * dt.Hour + 32 * dt.Minute + dt.Second / 2;
         }
@@ -70,7 +70,7 @@ namespace FAT32Lib.Fat {
         /// <param name="javaDateTime"></param>
         /// <returns></returns>
         public static int EncodeDate(long javaDateTime) {
-            DateTime dt = new DateTime(1980, 1, 1);
+            var dt = new DateTime(1980, 1, 1);
             dt.AddMilliseconds(javaDateTime);
             return 512 * (dt.Year - 1980) + 32 * dt.Month +
                     dt.Day;

@@ -2,7 +2,7 @@
 using System;
 using System.IO;
 
-namespace FAT32Lib.Test {
+namespace FAT32Lib.Example {
     public class TestProgram {
         public static void Exec(string nativeCommand, string[] args) {
             if (args.Length < 1) {
@@ -37,13 +37,13 @@ namespace FAT32Lib.Test {
             if (args.Length == 2)
                 t = args[1];
             else
-                t = Path.Combine(args[0], string.Format("{0}_converted", Path.GetFileName(args[0])));
+                t = Path.Combine(args[0], $"{Path.GetFileName(args[0])}_converted");
             if (!Directory.Exists(t) && !Directory.CreateDirectory(t).Exists) {
-                Console.WriteLine(string.Format("Failed to make target directory at {0}\n", t));
+                Console.WriteLine($"Failed to make target directory at {t}\n");
                 Environment.Exit(3);
             }
             try {
-                bool success = RecurseExtract(t, "", root);
+                var success = RecurseExtract(t, "", root);
                 Console.WriteLine("Extract complete.");
                 if (!success)
                     Environment.Exit(8);
@@ -55,31 +55,29 @@ namespace FAT32Lib.Test {
         }
         private static bool RecurseExtract(string targetRoot, string path, IFsDirectory dir) {
             foreach (IFsDirectoryEntry e in dir) {
-                if (!".".Equals(e.GetName())) {
-                    if (e.IsFile()) {
-                        string output = Path.Combine(targetRoot, e.GetName());
-                        Console.WriteLine(string.Format("Writing {0}...", Path.Combine(path, e.GetName())));
-                        IFsFile fsf = e.GetFile();
-                        MemoryStream ms = new MemoryStream((int)fsf.GetLength());
-                        ms.SetLength(fsf.GetLength());
-                        fsf.Read(0L, ms);
-                        FileStream fs = new FileStream(output, FileMode.Create, FileAccess.Write);
-                        ms.Position = 0;
-                        ms.CopyTo(fs);
-                        fs.Close();
-                        ms.Close();
+                if (".".Equals(e.GetName())) continue;
+                if (e.IsFile()) {
+                    var output = Path.Combine(targetRoot, e.GetName());
+                    Console.WriteLine($"Writing {Path.Combine(path, e.GetName())}...");
+                    var fsf = e.GetFile();
+                    var ms = new MemoryStream((int)fsf.GetLength());
+                    ms.SetLength(fsf.GetLength());
+                    fsf.Read(0L, ms);
+                    var fs = new FileStream(output, FileMode.Create, FileAccess.Write);
+                    ms.Position = 0;
+                    ms.CopyTo(fs);
+                    fs.Close();
+                    ms.Close();
+                }
+                else if (e.IsDirectory()) {
+                    if ("..".Equals(e.GetName())) continue;
+                    var output = Path.Combine(targetRoot, e.GetName());
+                    if (!Directory.Exists(output) && !Directory.CreateDirectory(output).Exists) {
+                        Console.WriteLine($"Failed to make directory at {output}\n");
+                        return false;
                     }
-                    else if (e.IsDirectory()) {
-                        if (!"..".Equals(e.GetName())) {
-                            string output = Path.Combine(targetRoot, e.GetName());
-                            if (!Directory.Exists(output) && !Directory.CreateDirectory(output).Exists) {
-                                Console.WriteLine(string.Format("Failed to make directory at {0}\n", output));
-                                return false;
-                            }
-                            if (!RecurseExtract(output, Path.Combine(path, e.GetName()), e.GetDirectory()))
-                                return false;
-                        }
-                    }
+                    if (!RecurseExtract(output, Path.Combine(path, e.GetName()), e.GetDirectory()))
+                        return false;
                 }
             }
             return true;

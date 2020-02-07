@@ -48,8 +48,8 @@ namespace FAT32Lib.Fat {
         /// <param name="offset"></param>
         /// <returns></returns>
         public static int GetUInt16(byte[] src, int offset) {
-            int v0 = src[offset + 0] & 0xFF;
-            int v1 = src[offset + 1] & 0xFF;
+            var v0 = src[offset + 0] & 0xFF;
+            var v1 = src[offset + 1] & 0xFF;
             return ((v1 << 8) | v0);
         }
 

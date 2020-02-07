@@ -61,12 +61,13 @@ namespace FAT32Lib.Fat {
                         " FATs when reading FAT #" + fatNr);
             }
 
-            long fatOffset = FatUtils.GetFatOffset(bs, fatNr);
-            Fat result = new Fat(bs, fatOffset);
+            var fatOffset = FatUtils.GetFatOffset(bs, fatNr);
+            var result = new Fat(bs, fatOffset);
             result.Read();
             return result;
         }
 
+        /// <summary>
         /// Creates a new <see cref="Fat"/> as specified by a <see cref="BootSector"/>.
         /// </summary>
         /// <param name="bs">the boot sector specifying the <see cref="Fat"/> layout</param>
@@ -83,8 +84,8 @@ namespace FAT32Lib.Fat {
                         " FATs when creating FAT #" + fatNr);
             }
 
-            long fatOffset = FatUtils.GetFatOffset(bs, fatNr);
-            Fat result = new Fat(bs, fatOffset);
+            var fatOffset = FatUtils.GetFatOffset(bs, fatNr);
+            var result = new Fat(bs, fatOffset);
 
             if (bs.GetDataClusterCount() > result.entries.Length)
                 throw new IOException("FAT too small for device");
@@ -162,10 +163,10 @@ namespace FAT32Lib.Fat {
         /// </summary>
         /// <exception cref="IOException">IOException on read error</exception>
         private void Read() {
-            byte[] data = new byte[sectorCount * sectorSize];
+            var data = new byte[sectorCount * sectorSize];
             device.Read(offset, new MemoryStream(data));
 
-            for (int i = 0; i < entries.Length; i++)
+            for (var i = 0; i < entries.Length; i++)
                 entries[i] = fatType.ReadEntry(data, i);
         }
 
@@ -179,9 +180,9 @@ namespace FAT32Lib.Fat {
         /// <param name="offset">the device offset where to write the FAT copy</param>
         /// <exception cref="IOException">IOException on write error</exception>
         public void WriteCopy(long offset) {
-            byte[] data = new byte[sectorCount * sectorSize];
+            var data = new byte[sectorCount * sectorSize];
 
-            for (int index = 0; index < entries.Length; index++) {
+            for (var index = 0; index < entries.Length; index++) {
                 fatType.WriteEntry(data, index, entries[index]);
             }
 
@@ -216,17 +217,17 @@ namespace FAT32Lib.Fat {
         public long[] GetChain(long startCluster) {
             TestCluster(startCluster);
             // Count the chain first
-            int count = 1;
-            long cluster = startCluster;
+            var count = 1;
+            var cluster = startCluster;
             while (!IsEofCluster(entries[(int)cluster])) {
                 count++;
                 cluster = entries[(int)cluster];
             }
             // Now create the chain
-            long[] chain = new long[count];
+            var chain = new long[count];
             chain[0] = startCluster;
             cluster = startCluster;
-            int i = 0;
+            var i = 0;
             while (!IsEofCluster(entries[(int)cluster])) {
                 cluster = entries[(int)cluster];
                 chain[++i] = cluster;
@@ -241,13 +242,12 @@ namespace FAT32Lib.Fat {
         /// <returns>long The next cluster number or -1 which means eof.</returns>
         public long GetNextCluster(long cluster) {
             TestCluster(cluster);
-            long entry = entries[(int)cluster];
+            var entry = entries[(int)cluster];
             if (IsEofCluster(entry)) {
                 return -1;
             }
-            else {
-                return entry;
-            }
+
+            return entry;
         }
 
         /// <summary>
@@ -258,7 +258,7 @@ namespace FAT32Lib.Fat {
         public long AllocNew() {
 
             int i;
-            int entryIndex = -1;
+            var entryIndex = -1;
 
             for (i = lastAllocatedCluster; i < lastClusterIndex; i++) {
                 if (IsFreeCluster(i)) {
@@ -301,9 +301,9 @@ namespace FAT32Lib.Fat {
         /// <seealso cref="FsInfoSector.GetFreeClusterCount"/>
         /// <seealso cref="BootSector.GetDataClusterCount"/>
         public int GetFreeClusterCount() {
-            int result = 0;
+            var result = 0;
 
-            for (int i = FIRST_CLUSTER; i < lastClusterIndex; i++) {
+            for (var i = FIRST_CLUSTER; i < lastClusterIndex; i++) {
                 if (IsFreeCluster(i)) result++;
             }
 
@@ -325,10 +325,10 @@ namespace FAT32Lib.Fat {
         /// <returns>long</returns>
         /// <exception cref="IOException">IOException if there are no free clusters</exception>
         public long[] AllocNew(int nrClusters) {
-            long[] rc = new long[nrClusters];
+            var rc = new long[nrClusters];
 
             rc[0] = AllocNew();
-            for (int i = 1; i < nrClusters; i++) {
+            for (var i = 1; i < nrClusters; i++) {
                 rc[i] = AllocAppend(rc[i - 1]);
             }
 
@@ -349,7 +349,7 @@ namespace FAT32Lib.Fat {
                 cluster = entries[(int)cluster];
             }
 
-            long newCluster = AllocNew();
+            var newCluster = AllocNew();
             entries[(int)cluster] = newCluster;
 
             return newCluster;
@@ -408,8 +408,8 @@ namespace FAT32Lib.Fat {
                 if (lastClusterIndex != other.lastClusterIndex) return false;
                 if (entries.Length != other.entries.Length)
                     return false;
-                int len = Math.Min(entries.Length, other.entries.Length);
-                for (int i = 0; i < len; i++)
+                var len = Math.Min(entries.Length, other.entries.Length);
+                for (var i = 0; i < len; i++)
                     if (entries[i] != other.entries[i])
                         return false;
                 if (GetMediumDescriptor() != other.GetMediumDescriptor())

@@ -87,20 +87,20 @@ namespace FAT32Lib.Fat {
          */
         public static FatDirectoryEntry Read(MemoryStream buff, bool readOnly) {
             /* peek into the buffer to see if we're done with reading */
-            long cPos = buff.Position;
-            int v = buff.ReadByte();
+            var cPos = buff.Position;
+            var v = buff.ReadByte();
             buff.Position = cPos;
             if (v == 0) return null;
 
             /* read the directory entry */
 
-            byte[] data = new byte[SIZE];
+            var data = new byte[SIZE];
             buff.Read(data, 0, data.Length);
             return new FatDirectoryEntry(data, readOnly);
         }
 
         public static void WriteNullEntry(MemoryStream buff) {
-            for (int i = 0; i < SIZE; i++) {
+            for (var i = 0; i < SIZE; i++) {
                 buff.WriteByte(0);
             }
         }
@@ -113,11 +113,11 @@ namespace FAT32Lib.Fat {
          */
         public bool IsVolumeLabel() {
             if (IsLfnEntry()) return false;
-            else return ((GetFlags() & (F_DIRECTORY | F_VOLUME_ID)) == F_VOLUME_ID);
+            return ((GetFlags() & (F_DIRECTORY | F_VOLUME_ID)) == F_VOLUME_ID);
         }
 
         private void SetFlag(int mask, bool set) {
-            int oldFlags = GetFlags();
+            var oldFlags = GetFlags();
 
             if (((oldFlags & mask) != 0) == set) return;
 
@@ -181,7 +181,7 @@ namespace FAT32Lib.Fat {
         }
 
         public static FatDirectoryEntry Create(bool directory) {
-            FatDirectoryEntry result = new FatDirectoryEntry();
+            var result = new FatDirectoryEntry();
 
             if (directory) {
                 result.SetFlags(F_DIRECTORY);
@@ -189,7 +189,7 @@ namespace FAT32Lib.Fat {
 
             /* initialize date and time fields */
 
-            long now = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
+            var now = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
             result.SetCreated(now);
             result.SetLastAccessed(now);
             result.SetLastModified(now);
@@ -198,14 +198,14 @@ namespace FAT32Lib.Fat {
         }
 
         public static FatDirectoryEntry CreateVolumeLabel(string volumeLabel) {
-            byte[] data = new byte[SIZE];
+            var data = new byte[SIZE];
 
             Array.Copy(
                         Encoding.ASCII.GetBytes(volumeLabel), 0,
                         data, 0,
                         volumeLabel.Length);
 
-            FatDirectoryEntry result = new FatDirectoryEntry(data, false);
+            var result = new FatDirectoryEntry(data, false);
             result.SetFlags(F_VOLUME_ID);
             return result;
         }
@@ -214,10 +214,10 @@ namespace FAT32Lib.Fat {
             if (!IsVolumeLabel())
                 throw new NotSupportedException("not a volume label");
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
-            for (int i = 0; i < AbstractDirectory.MAX_LABEL_LENGTH; i++) {
-                byte b = data[i];
+            for (var i = 0; i < AbstractDirectory.MAX_LABEL_LENGTH; i++) {
+                var b = data[i];
 
                 if (b != 0) {
                     sb.Append((char)b);
@@ -310,9 +310,8 @@ namespace FAT32Lib.Fat {
             if (data[0] == 0) {
                 return null;
             }
-            else {
-                return ShortName.Parse(data);
-            }
+
+            return ShortName.Parse(data);
         }
 
         /**
@@ -390,7 +389,7 @@ namespace FAT32Lib.Fat {
         }
 
         internal string GetLfnPart() {
-            char[] unicodechar = new char[13];
+            var unicodechar = new char[13];
 
             unicodechar[0] = (char)LittleEndian.GetUInt16(data, 1);
             unicodechar[1] = (char)LittleEndian.GetUInt16(data, 3);
@@ -406,7 +405,7 @@ namespace FAT32Lib.Fat {
             unicodechar[11] = (char)LittleEndian.GetUInt16(data, 28);
             unicodechar[12] = (char)LittleEndian.GetUInt16(data, 30);
 
-            int end = 0;
+            var end = 0;
 
             while ((end < 13) && (unicodechar[end] != '\0')) {
                 end++;

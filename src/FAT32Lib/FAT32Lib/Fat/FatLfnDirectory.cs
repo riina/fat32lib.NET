@@ -51,14 +51,14 @@ namespace FAT32Lib.Fat {
         private readonly Dictionary<FatDirectoryEntry, FatLfnDirectory> entryToDirectory;
         private readonly Dummy83BufferGenerator dbg;
 
-        internal readonly AbstractDirectory dir;
+        internal readonly AbstractDirectory Dir;
 
         internal FatLfnDirectory(AbstractDirectory dir, Fat fat, bool readOnly) : base(readOnly) {
 
             if ((dir == null) || (fat == null)) throw new NullReferenceException();
 
             this.fat = fat;
-            this.dir = dir;
+            this.Dir = dir;
 
             shortNameIndex = new Dictionary<ShortName, FatLfnDirectoryEntry>();
 
@@ -75,7 +75,7 @@ namespace FAT32Lib.Fat {
         }
 
         internal FatFile GetFile(FatDirectoryEntry entry) {
-            entryToFile.TryGetValue(entry, out FatFile file);
+            entryToFile.TryGetValue(entry, out var file);
 
             if (file == null) {
                 file = FatFile.Get(fat, entry);
@@ -86,10 +86,10 @@ namespace FAT32Lib.Fat {
         }
 
         internal FatLfnDirectory GetDirectory(FatDirectoryEntry entry) {
-            entryToDirectory.TryGetValue(entry, out FatLfnDirectory result);
+            entryToDirectory.TryGetValue(entry, out var result);
 
             if (result == null) {
-                ClusterChainDirectory storage = Read(entry, fat);
+                var storage = Read(entry, fat);
                 result = new FatLfnDirectory(storage, fat, IsReadOnly());
                 entryToDirectory.Add(entry, result);
             }
@@ -109,18 +109,18 @@ namespace FAT32Lib.Fat {
             CheckUniqueName(name);
 
             name = name.Trim();
-            ShortName sn = MakeShortName(name, false);
+            var sn = MakeShortName(name, false);
 
-            FatLfnDirectoryEntry entry = new FatLfnDirectoryEntry(name, sn, this, false);
+            var entry = new FatLfnDirectoryEntry(name, sn, this, false);
 
-            dir.AddEntries(entry.CompactForm());
+            Dir.AddEntries(entry.CompactForm());
 
             shortNameIndex.Add(sn, entry);
             longNameIndex.Add(name.ToLowerInvariant(), entry);
 
-            GetFile(entry.realEntry);
+            GetFile(entry.RealEntry);
 
-            dir.SetDirty();
+            Dir.SetDirty();
             return entry;
         }
 
@@ -159,18 +159,18 @@ namespace FAT32Lib.Fat {
             CheckUniqueName(name);
 
             name = name.Trim();
-            ShortName sn = MakeShortName(name, true);
-            FatDirectoryEntry real = dir.CreateSub(fat);
+            var sn = MakeShortName(name, true);
+            var real = Dir.CreateSub(fat);
             real.SetShortName(sn);
-            FatLfnDirectoryEntry e = new FatLfnDirectoryEntry(this, real, name);
+            var e = new FatLfnDirectoryEntry(this, real, name);
 
             try {
-                dir.AddEntries(e.CompactForm());
+                Dir.AddEntries(e.CompactForm());
             }
             catch (IOException ex) {
-                ClusterChain cc = new ClusterChain(fat, real.GetStartCluster(), false);
+                var cc = new ClusterChain(fat, real.GetStartCluster(), false);
                 cc.SetChainLength(0);
-                dir.RemoveEntry(real);
+                Dir.RemoveEntry(real);
                 throw ex;
             }
 
@@ -192,24 +192,23 @@ namespace FAT32Lib.Fat {
         public IFsDirectoryEntry GetEntry(string name) {
             name = name.Trim().ToLowerInvariant();
 
-            longNameIndex.TryGetValue(name, out FatLfnDirectoryEntry entry);
+            longNameIndex.TryGetValue(name, out var entry);
 
             if (entry == null) {
                 if (!ShortName.CanConvert(name)) return null;
                 return shortNameIndex[ShortName.Get(name)];
             }
-            else {
-                return entry;
-            }
+
+            return entry;
         }
 
         private void ParseLfn() {
-            int i = 0;
-            int size = dir.GetEntryCount();
+            var i = 0;
+            var size = Dir.GetEntryCount();
 
             while (i < size) {
                 // jump over empty entries
-                while (i < size && dir.GetEntry(i) == null) {
+                while (i < size && Dir.GetEntry(i) == null) {
                     i++;
                 }
 
@@ -217,9 +216,9 @@ namespace FAT32Lib.Fat {
                     break;
                 }
 
-                int offset = i; // beginning of the entry
+                var offset = i; // beginning of the entry
                                 // check when we reach a real entry
-                while (dir.GetEntry(i).IsLfnEntry()) {
+                while (Dir.GetEntry(i).IsLfnEntry()) {
                     i++;
                     if (i >= size) {
                         // This is a cutted entry, forgive it
@@ -232,46 +231,46 @@ namespace FAT32Lib.Fat {
                     break;
                 }
 
-                FatLfnDirectoryEntry current =
+                var current =
                         FatLfnDirectoryEntry.Extract(this, offset, ++i - offset);
 
-                if (!current.realEntry.IsDeleted() && current.IsValid()) {
+                if (!current.RealEntry.IsDeleted() && current.IsValid()) {
                     CheckUniqueName(current.GetName());
 
-                    shortNameIndex.Add(current.realEntry.GetShortName(), current);
+                    shortNameIndex.Add(current.RealEntry.GetShortName(), current);
                     longNameIndex.Add(current.GetName().ToLowerInvariant(), current);
                 }
             }
         }
 
-        private void UpdateLFN() {
-            List<FatDirectoryEntry> dest =
+        private void UpdateLfn() {
+            var dest =
                     new List<FatDirectoryEntry>();
 
-            foreach (FatLfnDirectoryEntry currentEntry in shortNameIndex.Values) {
-                FatDirectoryEntry[] encoded = currentEntry.CompactForm();
+            foreach (var currentEntry in shortNameIndex.Values) {
+                var encoded = currentEntry.CompactForm();
                 dest.AddRange(encoded);
             }
 
-            int size = dest.Count;
+            var size = dest.Count;
 
-            dir.ChangeSize(size);
-            dir.SetEntries(dest);
+            Dir.ChangeSize(size);
+            Dir.SetEntries(dest);
         }
 
         public void Flush() {
             CheckWritable();
 
-            foreach (FatFile f in entryToFile.Values) {
+            foreach (var f in entryToFile.Values) {
                 f.Flush();
             }
 
-            foreach (FatLfnDirectory d in entryToDirectory.Values) {
+            foreach (var d in entryToDirectory.Values) {
                 d.Flush();
             }
 
-            UpdateLFN();
-            dir.Flush();
+            UpdateLfn();
+            Dir.Flush();
         }
 
         IEnumerator IEnumerable.GetEnumerator() {
@@ -292,13 +291,13 @@ namespace FAT32Lib.Fat {
 
             UnlinkEntry(entry);
 
-            ClusterChain cc = new ClusterChain(
-                    fat, entry.realEntry.GetStartCluster(), false);
+            var cc = new ClusterChain(
+                    fat, entry.RealEntry.GetStartCluster(), false);
 
             cc.SetChainLength(0);
 
             FreeUniqueName(name);
-            UpdateLFN();
+            UpdateLfn();
         }
 
         /// <summary>
@@ -308,13 +307,13 @@ namespace FAT32Lib.Fat {
         /// <param name="entry">the entry to be unlinked</param>
         /// <seealso cref="LinkEntry(FatLfnDirectoryEntry)"/>
         internal void UnlinkEntry(FatLfnDirectoryEntry entry) {
-            ShortName sn = entry.realEntry.GetShortName();
+            var sn = entry.RealEntry.GetShortName();
 
-            if (sn.Equals(ShortName.DOT) || sn.Equals(ShortName.DOT_DOT)) throw
+            if (sn.Equals(ShortName.Dot) || sn.Equals(ShortName.DotDot)) throw
                     new ArgumentException(
                         "the dot entries can not be removed");
 
-            string lowerName = entry.GetName().ToLowerInvariant();
+            var lowerName = entry.GetName().ToLowerInvariant();
 
             if (!longNameIndex.ContainsKey(lowerName))
                 throw new Exception();
@@ -325,10 +324,10 @@ namespace FAT32Lib.Fat {
             shortNameIndex.Remove(sn);
 
             if (entry.IsFile()) {
-                entryToFile.Remove(entry.realEntry);
+                entryToFile.Remove(entry.RealEntry);
             }
             else {
-                entryToDirectory.Remove(entry.realEntry);
+                entryToDirectory.Remove(entry.RealEntry);
             }
         }
 
@@ -342,12 +341,12 @@ namespace FAT32Lib.Fat {
             CheckUniqueName(entry.GetName());
             ShortName name;
             name = dbg.Generate83BufferNew(entry.GetName());
-            entry.realEntry.SetShortName(name);
+            entry.RealEntry.SetShortName(name);
 
             longNameIndex.Add(entry.GetName().ToLowerInvariant(), entry);
-            shortNameIndex.Add(entry.realEntry.GetShortName(), entry);
+            shortNameIndex.Add(entry.RealEntry.GetShortName(), entry);
 
-            UpdateLFN();
+            UpdateLfn();
         }
 
         private static ClusterChainDirectory Read(FatDirectoryEntry entry, Fat fat) {
@@ -355,11 +354,11 @@ namespace FAT32Lib.Fat {
             if (!entry.IsDirectory()) throw
                     new ArgumentException(entry + " is no directory");
 
-            ClusterChain chain = new ClusterChain(
+            var chain = new ClusterChain(
                     fat, entry.GetStartCluster(),
                     entry.IsReadonlyFlag());
 
-            ClusterChainDirectory result =
+            var result =
                     new ClusterChainDirectory(chain, false);
 
             result.Read();

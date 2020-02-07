@@ -165,57 +165,57 @@ namespace FAT32Lib.Fat {
         /// <returns>the file system that was created</returns>
         /// <exception cref="System.IO.IOException">IOException on write error</exception>
         public FatFileSystem Format() {
-            int sectorSize = device.GetSectorSize();
-            int totalSectors = (int)(device.GetSize() / sectorSize);
+            var sectorSize = device.GetSectorSize();
+            var totalSectors = (int)(device.GetSize() / sectorSize);
 
             FsInfoSector fsi;
             BootSector bs;
             if (sectorsPerCluster == 0) throw new Exception();
 
-            if (fatType == FatType.BASE_FAT32) {
+            if (fatType == FatType.BaseFat32) {
                 bs = new Fat32BootSector(device);
                 InitBootSector(bs);
 
-                Fat32BootSector f32bs = (Fat32BootSector)bs;
+                var f32Bs = (Fat32BootSector)bs;
 
-                f32bs.SetFsInfoSectorNr(1);
+                f32Bs.SetFsInfoSectorNr(1);
 
-                f32bs.SetSectorsPerFat(SectorsPerFat(0, totalSectors));
-                Random rnd = new Random();
-                f32bs.SetFileSystemId(rnd.Next());
+                f32Bs.SetSectorsPerFat(SectorsPerFat(0, totalSectors));
+                var rnd = new Random();
+                f32Bs.SetFileSystemId(rnd.Next());
 
-                f32bs.SetVolumeLabel(label);
+                f32Bs.SetVolumeLabel(label);
 
                 /* create FS info sector */
-                fsi = FsInfoSector.Create(f32bs);
+                fsi = FsInfoSector.Create(f32Bs);
             }
             else {
                 bs = new Fat16BootSector(device);
                 InitBootSector(bs);
 
-                Fat16BootSector f16bs = (Fat16BootSector)bs;
+                var f16Bs = (Fat16BootSector)bs;
 
-                int rootDirEntries = RootDirectorySize(
+                var rootDirEntries = RootDirectorySize(
                         device.GetSectorSize(), totalSectors);
 
-                f16bs.SetRootDirEntryCount(rootDirEntries);
-                f16bs.SetSectorsPerFat(SectorsPerFat(rootDirEntries, totalSectors));
-                if (label != null) f16bs.SetVolumeLabel(label);
+                f16Bs.SetRootDirEntryCount(rootDirEntries);
+                f16Bs.SetSectorsPerFat(SectorsPerFat(rootDirEntries, totalSectors));
+                if (label != null) f16Bs.SetVolumeLabel(label);
                 fsi = null;
             }
 
             //        bs.write();
 
-            if (fatType == FatType.BASE_FAT32) {
-                Fat32BootSector f32bs = (Fat32BootSector)bs;
+            if (fatType == FatType.BaseFat32) {
+                var f32Bs = (Fat32BootSector)bs;
                 /* possibly writes the boot sector copy */
-                f32bs.WriteCopy(device);
+                f32Bs.WriteCopy(device);
             }
 
-            Fat fat = Fat.Create(bs, 0);
+            var fat = Fat.Create(bs, 0);
 
             AbstractDirectory rootDirStore;
-            if (fatType == FatType.BASE_FAT32) {
+            if (fatType == FatType.BaseFat32) {
                 rootDirStore = ClusterChainDirectory.CreateRoot(fat);
                 fsi.SetFreeClusterCount(fat.GetFreeClusterCount());
                 fsi.SetLastAllocatedCluster(fat.GetLastAllocatedCluster());
@@ -225,18 +225,18 @@ namespace FAT32Lib.Fat {
                 rootDirStore = Fat16RootDirectory.Create((Fat16BootSector)bs);
             }
 
-            FatLfnDirectory rootDir =
+            var rootDir =
                     new FatLfnDirectory(rootDirStore, fat, false);
 
             rootDir.Flush();
 
-            for (int i = 0; i < bs.GetNrFats(); i++) {
+            for (var i = 0; i < bs.GetNrFats(); i++) {
                 fat.WriteCopy(FatUtils.GetFatOffset(bs, i));
             }
 
             bs.Write();
 
-            FatFileSystem fs = FatFileSystem.Read(device, false);
+            var fs = FatFileSystem.Read(device, false);
 
             if (label != null) {
                 fs.SetVolumeLabel(label);
@@ -247,17 +247,17 @@ namespace FAT32Lib.Fat {
         }
 
         private int SectorsPerFat(int rootDirEntries, int totalSectors) {
-            int bps = device.GetSectorSize();
-            int rootDirSectors =
+            var bps = device.GetSectorSize();
+            var rootDirSectors =
                     ((rootDirEntries * 32) + (bps - 1)) / bps;
             long tmp1 =
                     totalSectors - (this.reservedSectors + rootDirSectors);
-            int tmp2 = (256 * this.sectorsPerCluster) + this.fatCount;
+            var tmp2 = (256 * this.sectorsPerCluster) + this.fatCount;
 
-            if (fatType == FatType.BASE_FAT32)
+            if (fatType == FatType.BaseFat32)
                 tmp2 /= 2;
 
-            int result = (int)((tmp1 + (tmp2 - 1)) / tmp2);
+            var result = (int)((tmp1 + (tmp2 - 1)) / tmp2);
 
             return result;
         }
@@ -280,19 +280,19 @@ namespace FAT32Lib.Fat {
         /// <returns>the suggested FAT type</returns>
         /// <exception cref="System.IO.IOException">IOException on error determining the device's size</exception>
         public static FatType FatTypeFromSize(long sizeInBytes) {
-            long sizeInMb = sizeInBytes / (1024 * 1024);
-            if (sizeInMb < 4) return FatType.BASE_FAT12;
-            else if (sizeInMb < 512) return FatType.BASE_FAT16;
-            else return FatType.BASE_FAT32;
+            var sizeInMb = sizeInBytes / (1024 * 1024);
+            if (sizeInMb < 4) return FatType.BaseFat12;
+            if (sizeInMb < 512) return FatType.BaseFat16;
+            return FatType.BaseFat32;
         }
 
         public static int ClusterSizeFromSize(long sizeInBytes, int sectorSize) {
-            FatType ft = FatTypeFromSize(sizeInBytes);
-            if (ft == FatType.BASE_FAT12)
+            var ft = FatTypeFromSize(sizeInBytes);
+            if (ft == FatType.BaseFat12)
                 return SectorsPerCluster12(sizeInBytes, sectorSize);
-            if (ft == FatType.BASE_FAT16)
+            if (ft == FatType.BaseFat16)
                 return SectorsPerCluster16FromSize(sizeInBytes, sectorSize);
-            if (ft == FatType.BASE_FAT32)
+            if (ft == FatType.BaseFat32)
                 return SectorsPerCluster32FromSize(sizeInBytes, sectorSize);
             throw new Exception();
         }
@@ -318,9 +318,9 @@ namespace FAT32Lib.Fat {
 
             if (fatType == null) throw new NullReferenceException();
 
-            if (fatType == FatType.BASE_FAT12 || fatType == FatType.BASE_FAT16)
+            if (fatType == FatType.BaseFat12 || fatType == FatType.BaseFat16)
                 reservedSectors = 1;
-            else if (fatType == FatType.BASE_FAT32)
+            else if (fatType == FatType.BaseFat32)
                 reservedSectors = 32;
             sectorsPerCluster = DefaultSectorsPerCluster(fatType);
             this.fatType = fatType;
@@ -329,19 +329,18 @@ namespace FAT32Lib.Fat {
         }
 
         private static int RootDirectorySize(int bps, int nbTotalSectors) {
-            int totalSize = bps * nbTotalSectors;
+            var totalSize = bps * nbTotalSectors;
             if (totalSize >= MAX_DIRECTORY * 5 * 32) {
                 return MAX_DIRECTORY;
             }
-            else {
-                return totalSize / (5 * 32);
-            }
+
+            return totalSize / (5 * 32);
         }
 
-        static private int MAX_FAT32_CLUSTERS = 0x0FFFFFF5;
+        static private int _maxFat32Clusters = 0x0FFFFFF5;
 
         static private int SectorsPerCluster32FromSize(long size, int sectorSize) {
-            long sectors = size / sectorSize;
+            var sectors = size / sectorSize;
 
             if (sectors <= 66600) throw new ArgumentException(
                     "disk too small for FAT32");
@@ -360,7 +359,7 @@ namespace FAT32Lib.Fat {
             if (fatCount != 2) throw new InvalidOperationException(
                     "number of FATs must be 2");
 
-            long sectors = device.GetSize() / device.GetSectorSize();
+            var sectors = device.GetSize() / device.GetSectorSize();
 
             if (sectors <= 66600) throw new ArgumentException(
                     "disk too small for FAT32");
@@ -368,10 +367,10 @@ namespace FAT32Lib.Fat {
             return SectorsPerCluster32FromSize(device.GetSize(), device.GetSectorSize());
         }
 
-        static private int MAX_FAT16_CLUSTERS = 65524;
+        static private int _maxFat16Clusters = 65524;
 
         static private int SectorsPerCluster16FromSize(long size, int sectorSize) {
-            long sectors = size / sectorSize;
+            var sectors = size / sectorSize;
 
             if (sectors <= 8400) throw new ArgumentException(
                     "disk too small for FAT16");
@@ -394,28 +393,28 @@ namespace FAT32Lib.Fat {
             if (fatCount != 2) throw new InvalidOperationException(
                     "number of FATs must be 2");
 
-            long size = device.GetSize();
-            int sectorSize = device.GetSectorSize();
+            var size = device.GetSize();
+            var sectorSize = device.GetSectorSize();
             return SectorsPerCluster16FromSize(size, sectorSize);
         }
 
         private int DefaultSectorsPerCluster(FatType fatType) {
-            long size = device.GetSize();
-            int sectorSize = device.GetSectorSize();
+            var size = device.GetSize();
+            var sectorSize = device.GetSectorSize();
 
-            if (fatType == FatType.BASE_FAT12)
+            if (fatType == FatType.BaseFat12)
                 return SectorsPerCluster12(size, sectorSize);
-            if (fatType == FatType.BASE_FAT16)
+            if (fatType == FatType.BaseFat16)
                 return SectorsPerCluster16();
-            if (fatType == FatType.BASE_FAT32)
+            if (fatType == FatType.BaseFat32)
                 return SectorsPerCluster32();
             throw new Exception();
         }
 
         static private int SectorsPerCluster12(long size, int sectorSize) {
-            int result = 1;
+            var result = 1;
 
-            long sectors = size / sectorSize;
+            var sectors = size / sectorSize;
 
             while (sectors / result > Fat16BootSector.MAX_FAT12_CLUSTERS) {
                 result *= 2;

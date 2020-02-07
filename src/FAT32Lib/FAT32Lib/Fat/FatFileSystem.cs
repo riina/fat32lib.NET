@@ -67,20 +67,20 @@ namespace FAT32Lib.Fat {
             fat = Fat.Read(bs, 0);
 
             if (!ignoreFatDifferences) {
-                for (int i = 1; i < bs.GetNrFats(); i++) {
-                    Fat tmpFat = Fat.Read(bs, i);
+                for (var i = 1; i < bs.GetNrFats(); i++) {
+                    var tmpFat = Fat.Read(bs, i);
                     if (!fat.Equals(tmpFat)) {
                         throw new IOException("FAT " + i + " differs from FAT 0");
                     }
                 }
             }
 
-            if (fatType == FatType.BASE_FAT32) {
-                Fat32BootSector f32bs = (Fat32BootSector)bs;
-                ClusterChain rootDirFile = new ClusterChain(fat,
-                        f32bs.GetRootDirFirstCluster(), IsReadOnly());
+            if (fatType == FatType.BaseFat32) {
+                var f32Bs = (Fat32BootSector)bs;
+                var rootDirFile = new ClusterChain(fat,
+                        f32Bs.GetRootDirFirstCluster(), IsReadOnly());
                 rootDirStore = ClusterChainDirectory.ReadRoot(rootDirFile);
-                fsiSector = FsInfoSector.Read(f32bs);
+                fsiSector = FsInfoSector.Read(f32Bs);
 
                 if (fsiSector.GetFreeClusterCount() != fat.GetFreeClusterCount()) {
                     throw new IOException("free cluster count mismatch - fat: " +
@@ -134,14 +134,13 @@ namespace FAT32Lib.Fat {
         public string GetVolumeLabel() {
             CheckClosed();
 
-            string fromDir = rootDirStore.GetLabel();
+            var fromDir = rootDirStore.GetLabel();
 
-            if (fromDir == null && fatType != FatType.BASE_FAT32) {
+            if (fromDir == null && fatType != FatType.BaseFat32) {
                 return ((Fat16BootSector)bs).GetVolumeLabel();
             }
-            else {
-                return fromDir;
-            }
+
+            return fromDir;
         }
 
         /**
@@ -163,7 +162,7 @@ namespace FAT32Lib.Fat {
 
             rootDirStore.SetLabel(label);
 
-            if (fatType != FatType.BASE_FAT32) {
+            if (fatType != FatType.BaseFat32) {
                 ((Fat16BootSector)bs).SetVolumeLabel(label);
             }
         }
@@ -185,7 +184,7 @@ namespace FAT32Lib.Fat {
                 bs.Write();
             }
 
-            for (int i = 0; i < bs.GetNrFats(); i++) {
+            for (var i = 0; i < bs.GetNrFats(); i++) {
                 fat.WriteCopy(FatUtils.GetFatOffset(bs, i));
             }
 

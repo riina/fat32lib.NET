@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FAT32Lib.Test\FAT32Lib.Test.csproj" />
+    <ProjectReference Include="..\FAT32Lib.Example\FAT32Lib.Example.csproj" />
   </ItemGroup>
 
 </Project>

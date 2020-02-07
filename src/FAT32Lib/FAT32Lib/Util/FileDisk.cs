@@ -71,7 +71,7 @@ namespace FAT32Lib.Util {
         /// <returns>the created <see cref="FileDisk"/> instance</returns>
         /// <exception cref="IOException">IOException on error creating the <see cref="FileDisk"/></exception>
         public static FileDisk Create(string file, long size) {
-            FileStream fileStream =
+            var fileStream =
                     new FileStream(file, FileMode.Create, FileAccess.ReadWrite);
             fileStream.SetLength(size);
 
@@ -87,15 +87,15 @@ namespace FAT32Lib.Util {
         public void Read(long devOffset, MemoryStream dest) {
             CheckClosed();
 
-            int toRead = (int)(dest.Length - dest.Position);
+            var toRead = (int)(dest.Length - dest.Position);
             if ((devOffset + toRead) > GetSize()) throw new IOException(
                     "reading past end of device");
 
             // Kulikova: Conversion to explicit buffering
-            byte[] buf = new byte[4096];
+            var buf = new byte[4096];
             while (toRead > 0) {
                 fileStream.Position = devOffset;
-                int read = fileStream.Read(buf, 0, Math.Min(toRead, buf.Length));
+                var read = fileStream.Read(buf, 0, Math.Min(toRead, buf.Length));
                 dest.Write(buf, 0, read);
                 toRead -= read;
                 devOffset += read;
@@ -107,13 +107,13 @@ namespace FAT32Lib.Util {
 
             if (this.readOnly) throw new ReadOnlyException();
 
-            int toWrite = (int)(src.Length - src.Position);
+            var toWrite = (int)(src.Length - src.Position);
 
             // Kulikova: Conversion to explicit buffering
-            byte[] buf = new byte[4096];
+            var buf = new byte[4096];
             while (toWrite > 0) {
                 fileStream.Position = devOffset;
-                int written = src.Read(buf, 0, Math.Min(toWrite, buf.Length));
+                var written = src.Read(buf, 0, Math.Min(toWrite, buf.Length));
                 fileStream.Write(buf, 0, written);
                 toWrite -= written;
                 devOffset += written;

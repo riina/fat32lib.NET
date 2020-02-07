@@ -59,7 +59,7 @@ namespace FAT32Lib.Fat {
         /// <exception cref="IOException">IOException on read error</exception>
         /// <seealso cref="Fat32BootSector.GetFsInfoSectorNr"/>
         public static FsInfoSector Read(Fat32BootSector bs) {
-            FsInfoSector result =
+            var result =
                     new FsInfoSector(bs.GetDevice(), Offset(bs));
 
             result.Read();
@@ -76,12 +76,12 @@ namespace FAT32Lib.Fat {
         /// <exception cref="IOException">IOException on write error</exception>
         /// <seealso cref="Fat32BootSector.GetFsInfoSectorNr"/>
         public static FsInfoSector Create(Fat32BootSector bs) {
-            int offset = Offset(bs);
+            var offset = Offset(bs);
 
             if (offset == 0) throw new IOException(
                     "creating a FS info sector at offset 0 is strange");
 
-            FsInfoSector result =
+            var result =
                    new FsInfoSector(bs.GetDevice(), Offset(bs));
 
             result.Init();
@@ -137,26 +137,26 @@ namespace FAT32Lib.Fat {
         }
 
         private void Init() {
-            buffer.Position = 0;
-            buffer.WriteByte(0x52);
-            buffer.WriteByte(0x52);
-            buffer.WriteByte(0x61);
-            buffer.WriteByte(0x41);
+            Buffer.Position = 0;
+            Buffer.WriteByte(0x52);
+            Buffer.WriteByte(0x52);
+            Buffer.WriteByte(0x61);
+            Buffer.WriteByte(0x41);
 
             /* 480 reserved bytes */
 
-            buffer.Position = 0x1e4;
-            buffer.WriteByte(0x72);
-            buffer.WriteByte(0x72);
-            buffer.WriteByte(0x41);
-            buffer.WriteByte(0x61);
+            Buffer.Position = 0x1e4;
+            Buffer.WriteByte(0x72);
+            Buffer.WriteByte(0x72);
+            Buffer.WriteByte(0x41);
+            Buffer.WriteByte(0x61);
 
             SetFreeClusterCount(-1);
             SetLastAllocatedCluster(Fat.FIRST_CLUSTER);
 
-            buffer.Position = SIGNATURE_OFFSET;
-            buffer.WriteByte(0x55);
-            buffer.WriteByte(0xaa);
+            Buffer.Position = SIGNATURE_OFFSET;
+            Buffer.WriteByte(0x55);
+            Buffer.WriteByte(0xaa);
 
             MarkDirty();
         }

@@ -40,7 +40,7 @@ namespace FAT32Lib.Fat {
         }
 
         /// <summary>
-        /// Its in the DOS manual!(DOS 5: page 72) Valid: A..Z 0..9 _ ^ $ ~ ! # % & - {} () @ ' `
+        /// Its in the DOS manual!(DOS 5: page 72) Valid: A..Z 0..9 _ ^ $ ~ ! # % &amp; - {} () @ ' `
         /// Invalid: spaces/periods,
         /// </summary>
         /// <param name="toTest"></param>
@@ -63,11 +63,11 @@ namespace FAT32Lib.Fat {
         }
 
         public static string TidyString(string dirty) {
-            StringBuilder result = new StringBuilder();
+            var result = new StringBuilder();
 
             /* epurate it from alien characters */
-            for (int src = 0; src < dirty.Length; src++) {
-                char toTest = char.ToUpperInvariant(dirty[src]);
+            for (var src = 0; src < dirty.Length; src++) {
+                var toTest = char.ToUpperInvariant(dirty[src]);
                 if (IsSkipChar(toTest)) continue;
 
                 if (ValidChar(toTest)) {
@@ -82,7 +82,7 @@ namespace FAT32Lib.Fat {
         }
 
         public static bool CleanString(string s) {
-            for (int i = 0; i < s.Length; i++) {
+            for (var i = 0; i < s.Length; i++) {
                 if (IsSkipChar(s[i])) return false;
                 if (!ValidChar(s[i])) return false;
             }
@@ -91,9 +91,9 @@ namespace FAT32Lib.Fat {
         }
 
         public static string StripLeadingPeriods(string str) {
-            StringBuilder sb = new StringBuilder(str.Length);
+            var sb = new StringBuilder(str.Length);
 
-            for (int i = 0; i < str.Length; i++) {
+            for (var i = 0; i < str.Length; i++) {
                 if (str[i] != '.') {
                     sb.Append(str.Substring(i));
                     break;
@@ -105,7 +105,7 @@ namespace FAT32Lib.Fat {
               * These characters are all invalid in 8.3 names, plus have been shown to be
               * harmless on all tested devices
               */
-        private static readonly char[] invalidchar = {
+        private static readonly char[] Invalidchar = {
             (char) 0x01, (char) 0x02, (char) 0x03, (char) 0x04, (char) 0x05, (char) 0x06,
             (char) 0x0B,
             (char) 0x0C, (char) 0x0E, (char) 0x0F, (char) 0x10, (char) 0x11, (char) 0x12,
@@ -134,20 +134,20 @@ namespace FAT32Lib.Fat {
                 throw new ArgumentNullException(nameof(longFullName));
             }
 
-            char[] retBuffer = new char[11];
+            var retBuffer = new char[11];
 
-            bool hasRealShortName = false;// getRealShortNameInstead(longFullName,
+            var hasRealShortName = false;// getRealShortNameInstead(longFullName,
                                           // retBuffer);
             if (!hasRealShortName) {
-                int i, tilde_pos, slash_pos;
-                int randomNumber = Math.Abs(mRandom.Next());
+                int i, tildePos, slashPos;
+                var randomNumber = Math.Abs(mRandom.Next());
 
                 /*
                  * the '/' makes sure that even unpatched Linux systems can't get at
                  * files by the 8.3 entry.
                  */
 
-                slash_pos = randomNumber % 8;
+                slashPos = randomNumber % 8;
                 randomNumber >>= 3;
 
                 /*
@@ -156,13 +156,13 @@ namespace FAT32Lib.Fat {
                  * extension for all buffers.
                  */
                 for (i = 0; i < 8; i++) {
-                    if (i == slash_pos)
+                    if (i == slashPos)
                         retBuffer[i] = '/';
                     else {
                         retBuffer[i] =
-                                invalidchar[randomNumber % invalidchar.Length];
-                        randomNumber /= invalidchar.Length;
-                        if (randomNumber < invalidchar.Length)
+                                Invalidchar[randomNumber % Invalidchar.Length];
+                        randomNumber /= Invalidchar.Length;
+                        if (randomNumber < Invalidchar.Length)
                             randomNumber = Math.Abs(mRandom.Next());
                     }
                 }
@@ -177,7 +177,7 @@ namespace FAT32Lib.Fat {
                 retBuffer[9] = 'f';
                 retBuffer[10] = 'l';
             }
-            ShortName retName = new ShortName(retBuffer);
+            var retName = new ShortName(retBuffer);
             retName.SetHasShortNameOnly(hasRealShortName);
             return retName;
         }

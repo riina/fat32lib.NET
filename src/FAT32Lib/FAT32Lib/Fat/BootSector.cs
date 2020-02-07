@@ -71,8 +71,8 @@ namespace FAT32Lib.Fat {
         }
 
         public static BootSector Read(IBlockDevice device) {
-            byte[] b = new byte[512];
-            MemoryStream bb = new MemoryStream(b);
+            var b = new byte[512];
+            var bb = new MemoryStream(b);
             device.Read(0, bb);
 
             bb.Position = 510;
@@ -83,54 +83,54 @@ namespace FAT32Lib.Fat {
                  "missing boot sector signature");
 
             bb.Position = SECTORS_PER_CLUSTER_OFFSET;
-            byte sectorsPerCluster = (byte)bb.ReadByte();
+            var sectorsPerCluster = (byte)bb.ReadByte();
 
             if (sectorsPerCluster <= 0) throw new IOException(
                     "suspicious sectors per cluster count " + sectorsPerCluster);
 
-            byte[] rootDirEntriesB = new byte[2];
+            var rootDirEntriesB = new byte[2];
             bb.Position = Fat16BootSector.ROOT_DIR_ENTRIES_OFFSET;
             bb.Read(rootDirEntriesB, 0, 2);
             if (!BitConverter.IsLittleEndian)
                 Array.Reverse(rootDirEntriesB, 0, 2);
             int rootDirEntries = BitConverter.ToUInt16(rootDirEntriesB, 0);
 
-            int rootDirSectors = ((rootDirEntries * 32) +
-                    (device.GetSectorSize() - 1)) / device.GetSectorSize();
+            var rootDirSectors = ((rootDirEntries * 32) +
+                                  (device.GetSectorSize() - 1)) / device.GetSectorSize();
 
-            byte[] total16B = new byte[2];
+            var total16B = new byte[2];
             bb.Position = TOTAL_SECTORS_16_OFFSET;
             bb.Read(total16B, 0, 2);
             if (!BitConverter.IsLittleEndian)
                 Array.Reverse(total16B, 0, 2);
             int total16 = BitConverter.ToUInt16(total16B, 0);
 
-            byte[] total32B = new byte[4];
+            var total32B = new byte[4];
             bb.Position = TOTAL_SECTORS_32_OFFSET;
             bb.Read(total32B, 0, 4);
             if (!BitConverter.IsLittleEndian)
                 Array.Reverse(total32B, 0, 4);
             long total32 = BitConverter.ToUInt32(total32B, 0);
 
-            long totalSectors = total16 == 0 ? total32 : total16;
+            var totalSectors = total16 == 0 ? total32 : total16;
 
-            byte[] fatSz16B = new byte[2];
+            var fatSz16B = new byte[2];
             bb.Position = Fat16BootSector.SECTORS_PER_FAT_OFFSET;
             bb.Read(fatSz16B, 0, 2);
             if (!BitConverter.IsLittleEndian)
                 Array.Reverse(fatSz16B, 0, 2);
             int fatSz16 = BitConverter.ToUInt16(fatSz16B, 0);
 
-            byte[] fatSz32B = new byte[4];
+            var fatSz32B = new byte[4];
             bb.Position = Fat32BootSector.SECTORS_PER_FAT_OFFSET;
             bb.Read(fatSz32B, 0, 4);
             if (!BitConverter.IsLittleEndian)
                 Array.Reverse(fatSz32B, 0, 4);
             long fatSz32 = BitConverter.ToUInt32(fatSz32B, 0);
 
-            long fatSz = fatSz16 == 0 ? fatSz32 : fatSz16;
+            var fatSz = fatSz16 == 0 ? fatSz32 : fatSz16;
 
-            byte[] reservedSectorsB = new byte[2];
+            var reservedSectorsB = new byte[2];
             bb.Position = RESERVED_SECTORS_OFFSET;
             bb.Read(reservedSectorsB, 0, 2);
             if (!BitConverter.IsLittleEndian)
@@ -138,13 +138,13 @@ namespace FAT32Lib.Fat {
             int reservedSectors = BitConverter.ToUInt16(reservedSectorsB, 0);
 
             bb.Position = FAT_COUNT_OFFSET;
-            int fatCount = bb.ReadByte();
-            long dataSectors = totalSectors - (reservedSectors +
-                    (fatCount * fatSz) + rootDirSectors);
+            var fatCount = bb.ReadByte();
+            var dataSectors = totalSectors - (reservedSectors +
+                                              (fatCount * fatSz) + rootDirSectors);
 
-            long clusterCount = dataSectors / sectorsPerCluster;
+            var clusterCount = dataSectors / sectorsPerCluster;
 
-            BootSector result =
+            var result =
                     (clusterCount > Fat16BootSector.MAX_FAT16_CLUSTERS) ?
                 (BootSector)new Fat32BootSector(device) : (BootSector)new Fat16BootSector(device);
 
@@ -211,9 +211,9 @@ namespace FAT32Lib.Fat {
          * @see #FILE_SYSTEM_TYPE_LENGTH
          */
         public string GetFileSystemTypeLabel() {
-            StringBuilder sb = new StringBuilder(FILE_SYSTEM_TYPE_LENGTH);
+            var sb = new StringBuilder(FILE_SYSTEM_TYPE_LENGTH);
 
-            for (int i = 0; i < FILE_SYSTEM_TYPE_LENGTH; i++) {
+            for (var i = 0; i < FILE_SYSTEM_TYPE_LENGTH; i++) {
                 sb.Append((char)Get8(GetFileSystemTypeLabelOffset() + i));
             }
 
@@ -233,7 +233,7 @@ namespace FAT32Lib.Fat {
                 throw new ArgumentException();
             }
 
-            for (int i = 0; i < FILE_SYSTEM_TYPE_LENGTH; i++) {
+            for (var i = 0; i < FILE_SYSTEM_TYPE_LENGTH; i++) {
                 Set8(GetFileSystemTypeLabelOffset() + i, fsType[i]);
             }
         }
@@ -264,11 +264,11 @@ namespace FAT32Lib.Fat {
          * 
          * @return String
          */
-        public string getOemName() {
-            StringBuilder b = new StringBuilder(8);
+        public string GetOemName() {
+            var b = new StringBuilder(8);
 
-            for (int i = 0; i < 8; i++) {
-                int v = Get8(0x3 + i);
+            for (var i = 0; i < 8; i++) {
+                var v = Get8(0x3 + i);
                 if (v == 0) break;
                 b.Append((char)v);
             }
@@ -286,7 +286,7 @@ namespace FAT32Lib.Fat {
             if (name.Length > 8) throw new ArgumentException(
                     "only 8 characters are allowed");
 
-            for (int i = 0; i < 8; i++) {
+            for (var i = 0; i < 8; i++) {
                 char ch;
                 if (i < name.Length) {
                     ch = name[i];
@@ -514,10 +514,10 @@ namespace FAT32Lib.Fat {
         }
 
         public override string ToString() {
-            StringBuilder res = new StringBuilder(1024);
+            var res = new StringBuilder(1024);
             res.Append("Bootsector :\n");
             res.Append("oemName=");
-            res.Append(getOemName());
+            res.Append(GetOemName());
             res.Append('\n');
             res.Append("medium descriptor = ");
             res.Append(GetMediumDescriptor());

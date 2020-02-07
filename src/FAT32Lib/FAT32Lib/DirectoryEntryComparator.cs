@@ -21,6 +21,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+using System;
 using System.Collections.Generic;
 
 namespace FAT32Lib {
@@ -31,18 +32,17 @@ namespace FAT32Lib {
     /// </summary>
     public class DirectoryEntryComparator : IComparer<IFsDirectoryEntry> {
 
-        public static readonly DirectoryEntryComparator DIRECTORY_ENTRY_COMPARATOR =
+        public static readonly DirectoryEntryComparator Comparator =
             new DirectoryEntryComparator();
 
         public int Compare(IFsDirectoryEntry e1, IFsDirectoryEntry e2) {
             if (e2.IsDirectory() == e1.IsDirectory()) {
                 /* compare names */
-                return e1.GetName().CompareTo(e2.GetName());
+                return string.Compare(e1.GetName(), e2.GetName(), StringComparison.Ordinal);
             }
-            else {
-                if (e2.IsDirectory()) return 1;
-                else return -1;
-            }
+
+            if (e2.IsDirectory()) return 1;
+            return -1;
         }
     }
 }

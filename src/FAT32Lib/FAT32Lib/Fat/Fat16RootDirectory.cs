@@ -51,7 +51,7 @@ namespace FAT32Lib.Fat {
         /// <returns>the directory that was read</returns>
         /// <exception cref="IOException">IOException on read error</exception>
         public static Fat16RootDirectory Read(Fat16BootSector bs, bool readOnly) {
-            Fat16RootDirectory result = new Fat16RootDirectory(bs, readOnly);
+            var result = new Fat16RootDirectory(bs, readOnly);
             result.Read();
             return result;
         }
@@ -65,7 +65,7 @@ namespace FAT32Lib.Fat {
         /// <returns>the directory that was created</returns>
         /// <exception cref="IOException">IOException on write error</exception>
         public static Fat16RootDirectory Create(Fat16BootSector bs) {
-            Fat16RootDirectory result = new Fat16RootDirectory(bs, false);
+            var result = new Fat16RootDirectory(bs, false);
             result.Flush();
             return result;
         }

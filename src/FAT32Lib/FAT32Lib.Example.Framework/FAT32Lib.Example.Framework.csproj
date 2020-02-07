@@ -6,8 +6,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{1DEDAE7F-3463-4492-A5B0-4D1B9230EBBD}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>FAT32Lib.Test.Framework</RootNamespace>
-    <AssemblyName>FAT32Lib.Test.Framework</AssemblyName>
+    <AssemblyName>FAT32Lib.Example.Framework</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -51,9 +50,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FAT32Lib.Test\FAT32Lib.Test.csproj">
+    <ProjectReference Include="..\FAT32Lib.Example\FAT32Lib.Example.csproj">
       <Project>{51170b84-0bf5-441f-9d6c-c02d931ab9a6}</Project>
-      <Name>FAT32Lib.Test</Name>
+      <Name>FAT32Lib.Example</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

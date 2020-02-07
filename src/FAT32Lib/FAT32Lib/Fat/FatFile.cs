@@ -43,7 +43,7 @@ namespace FAT32Lib.Fat {
             if (entry.IsDirectory())
                 throw new ArgumentException(entry + " is a directory");
 
-            ClusterChain cc = new ClusterChain(
+            var cc = new ClusterChain(
                     fat, entry.GetStartCluster(), entry.IsReadonlyFlag());
 
             if (entry.GetLength() > cc.GetLengthOnDisk()) throw new IOException(
@@ -95,7 +95,7 @@ namespace FAT32Lib.Fat {
         public void Read(long offset, MemoryStream dest) {
             CheckValid();
 
-            int len = (int)(dest.Length - dest.Position);
+            var len = (int)(dest.Length - dest.Position);
 
             if (len == 0) return;
 
@@ -124,7 +124,7 @@ namespace FAT32Lib.Fat {
 
             UpdateTimeStamps(true);
 
-            long lastByte = offset + (srcBuf.Length - srcBuf.Position);
+            var lastByte = offset + (srcBuf.Length - srcBuf.Position);
 
             if (lastByte > GetLength()) {
                 SetLength(lastByte);
@@ -134,7 +134,7 @@ namespace FAT32Lib.Fat {
         }
 
         private void UpdateTimeStamps(bool write) {
-            long now = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
+            var now = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
             entry.SetLastAccessed(now);
 
             if (write) {

@@ -32,7 +32,7 @@ namespace FAT32Lib.Fat {
         /// <summary>
         /// These are taken from the FAT specification.
         /// </summary>
-        private static readonly byte[] ILLEGAL_CHARS = {
+        private static readonly byte[] IllegalChars = {
             0x22, 0x2A, 0x2B, 0x2C, 0x2E, 0x2F, 0x3A, 0x3B,
             0x3C, 0x3D, 0x3E, 0x3F, 0x5B, 0x5C, 0x5D, 0x7C
     };
@@ -40,12 +40,12 @@ namespace FAT32Lib.Fat {
         /// <summary>
         /// The name of the "current directory" (".") entry of a FAT directory.
         /// </summary>
-        public static readonly ShortName DOT = new ShortName(".", "");
+        public static readonly ShortName Dot = new ShortName(".", "");
 
         /// <summary>
         /// The name of the "parent directory" ("..") entry of a FAT directory.
         /// </summary>
-        public static readonly ShortName DOT_DOT = new ShortName("..", "");
+        public static readonly ShortName DotDot = new ShortName("..", "");
 
         private readonly char[] name;
         private bool mShortNameOnly;
@@ -54,7 +54,7 @@ namespace FAT32Lib.Fat {
             if (nameExt.Length > 12)
                 throw new ArgumentException("name too long");
 
-            int i = nameExt.IndexOf('.');
+            var i = nameExt.IndexOf('.');
             String nameString, extString;
 
             if (i < 0) {
@@ -79,7 +79,7 @@ namespace FAT32Lib.Fat {
         }
 
         public ShortName(char[] nameArr, char[] extArr) {
-            char[] result = new char[11];
+            var result = new char[11];
             Array.Copy(nameArr, result, nameArr.Length);
             Array.Copy(extArr, 0, result, 8, extArr.Length);
             name = result;
@@ -89,8 +89,8 @@ namespace FAT32Lib.Fat {
             CheckValidName(name);
             CheckValidExt(ext);
 
-            char[] result = new char[11];
-            for (int i = 0; i < result.Length; i++)
+            var result = new char[11];
+            for (var i = 0; i < result.Length; i++)
                 result[i] = ' ';
             Array.Copy(name.ToCharArray(), result, name.Length);
             Array.Copy(ext.ToCharArray(), 0, result, 8, ext.Length);
@@ -105,12 +105,12 @@ namespace FAT32Lib.Fat {
          * @return the {@code ShortName}'s checksum
          */
         public byte CheckSum() {
-            byte[] dest = new byte[11];
-            for (int i = 0; i < 11; i++)
+            var dest = new byte[11];
+            for (var i = 0; i < 11; i++)
                 dest[i] = (byte)name[i];
 
             int sum = dest[0];
-            for (int i = 1; i < 11; i++) {
+            for (var i = 1; i < 11; i++) {
                 sum = dest[i] + (((sum & 1) << 7) + ((sum & 0xfe) >> 1));
             }
 
@@ -128,11 +128,10 @@ namespace FAT32Lib.Fat {
          */
         public static ShortName Get(string name) {
             if (name == ".")
-                return DOT;
-            else if (name == "..")
-                return DOT_DOT;
-            else
-                return new ShortName(name);
+                return Dot;
+            if (name == "..")
+                return DotDot;
+            return new ShortName(name);
         }
 
         /**
@@ -154,14 +153,14 @@ namespace FAT32Lib.Fat {
         }
 
         public static ShortName Parse(byte[] data) {
-            char[] nameArr = new char[8];
+            var nameArr = new char[8];
 
-            for (int i = 0; i < nameArr.Length; i++) {
+            for (var i = 0; i < nameArr.Length; i++) {
                 nameArr[i] = (char)data[i];
             }
 
-            char[] extArr = new char[3];
-            for (int i = 0; i < extArr.Length; i++) {
+            var extArr = new char[3];
+            for (var i = 0; i < extArr.Length; i++) {
                 extArr[i] = (char)data[0x08 + i];
             }
 
@@ -169,7 +168,7 @@ namespace FAT32Lib.Fat {
         }
 
         public void Write(byte[] dest) {
-            for (int i = 0; i < 11; i++) {
+            for (var i = 0; i < 11; i++) {
                 dest[i] = (byte)name[i];
             }
         }
@@ -204,7 +203,7 @@ namespace FAT32Lib.Fat {
 
         public override bool Equals(object obj) {
             if (obj is ShortName other) {
-                for (int i = 0; i < 11; i++)
+                for (var i = 0; i < 11; i++)
                     if (name[i] != other.name[i])
                         return false;
                 return true;
@@ -237,19 +236,19 @@ namespace FAT32Lib.Fat {
                 throw new ArgumentException(
                         "0x20 can not be the first character");
 
-            for (int i = 0; i < chars.Length; i++) {
+            for (var i = 0; i < chars.Length; i++) {
                 if ((chars[i] & 0xff) != chars[i])
                     throw new ArgumentException("multi-byte character at " + i);
 
-                byte toTest = (byte)(chars[i] & 0xff);
+                var toTest = (byte)(chars[i] & 0xff);
 
                 if (toTest < 0x20 && toTest != 0x05)
                     throw new ArgumentException("character < 0x20 at" + i);
 
-                for (int j = 0; j < ILLEGAL_CHARS.Length; j++) {
-                    if (toTest == ILLEGAL_CHARS[j])
+                for (var j = 0; j < IllegalChars.Length; j++) {
+                    if (toTest == IllegalChars[j])
                         throw new ArgumentException("illegal character " +
-                                ILLEGAL_CHARS[j] + " at " + i);
+                                IllegalChars[j] + " at " + i);
                 }
             }
         }

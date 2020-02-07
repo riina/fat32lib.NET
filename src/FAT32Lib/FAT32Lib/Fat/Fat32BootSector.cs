@@ -110,8 +110,8 @@ namespace FAT32Lib.Fat {
         /// </summary>
         /// <param name="label">the new volume label, may be null</param>
         public void SetVolumeLabel(string label) {
-            for (int i = 0; i < 11; i++) {
-                byte c =
+            for (var i = 0; i < 11; i++) {
+                var c =
                         (byte)((label == null) ? 0 :
                         (label.Length > i) ? (byte)label[i] : 0x20);
 
@@ -140,7 +140,7 @@ namespace FAT32Lib.Fat {
         }
 
         public override FatType GetFatType() {
-            return FatType.BASE_FAT32;
+            return FatType.BaseFat32;
         }
 
         public override void SetSectorCount(long count) {
@@ -177,8 +177,8 @@ namespace FAT32Lib.Fat {
         public void WriteCopy(IBlockDevice device) {
             if (GetBootSectorCopySector() > 0) {
                 long offset = GetBootSectorCopySector() * SIZE;
-                buffer.Position = 0;
-                device.Write(offset, buffer);
+                Buffer.Position = 0;
+                device.Write(offset, Buffer);
             }
         }
 

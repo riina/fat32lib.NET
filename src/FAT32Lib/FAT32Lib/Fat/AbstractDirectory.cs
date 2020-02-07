@@ -30,7 +30,7 @@ namespace FAT32Lib.Fat {
     /// <summary>
     /// This is the abstract base class for all directory implementations.
     /// </summary>
-    abstract class AbstractDirectory {
+    public abstract class AbstractDirectory {
 
         /// <summary>
         /// The maximum length of the volume label.
@@ -118,7 +118,7 @@ namespace FAT32Lib.Fat {
         /// <param name="newSize">the new storage space for the directory in bytes</param>
         /// <seealso cref="ChangeSize(int)"/>
         protected void SizeChanged(long newSize) {
-            long newCount = newSize / FatDirectoryEntry.SIZE;
+            var newCount = newSize / FatDirectoryEntry.SIZE;
             if (newCount > int.MaxValue)
                 throw new IOException("directory too large");
 
@@ -197,11 +197,11 @@ namespace FAT32Lib.Fat {
         /// </summary>
         public void Flush() {
 
-            byte[] dataA = new byte[GetCapacity() * FatDirectoryEntry.SIZE];
-            MemoryStream data = new MemoryStream(dataA);
+            var dataA = new byte[GetCapacity() * FatDirectoryEntry.SIZE];
+            var data = new MemoryStream(dataA);
 
-            for (int i = 0; i < entries.Count; i++) {
-                FatDirectoryEntry entry = entries[i];
+            for (var i = 0; i < entries.Count; i++) {
+                var entry = entries[i];
 
                 if (entry != null) {
                     entry.Write(data);
@@ -211,7 +211,7 @@ namespace FAT32Lib.Fat {
             /* TODO: the label could be placed directly the dot entries */
 
             if (volumeLabel != null) {
-                FatDirectoryEntry labelEntry =
+                var labelEntry =
                         FatDirectoryEntry.CreateVolumeLabel(volumeLabel);
 
                 labelEntry.Write(data);
@@ -229,15 +229,15 @@ namespace FAT32Lib.Fat {
         }
 
         internal void Read() {
-            byte[] dataA = new byte[GetCapacity() * FatDirectoryEntry.SIZE];
-            MemoryStream data = new MemoryStream(dataA);
+            var dataA = new byte[GetCapacity() * FatDirectoryEntry.SIZE];
+            var data = new MemoryStream(dataA);
 
             Read(data);
             data.SetLength(data.Position);
             data.Position = 0;
 
-            for (int i = 0; i < GetCapacity(); i++) {
-                FatDirectoryEntry e =
+            for (var i = 0; i < GetCapacity(); i++) {
+                var e =
                         FatDirectoryEntry.Read(data, IsReadOnly());
 
                 if (e == null) break;
@@ -296,27 +296,27 @@ namespace FAT32Lib.Fat {
         }
 
         public FatDirectoryEntry CreateSub(Fat fat) {
-            ClusterChain chain = new ClusterChain(fat, false);
+            var chain = new ClusterChain(fat, false);
             chain.SetChainLength(1);
 
-            FatDirectoryEntry entry = FatDirectoryEntry.Create(true);
+            var entry = FatDirectoryEntry.Create(true);
             entry.SetStartCluster(chain.GetStartCluster());
 
-            ClusterChainDirectory dir =
+            var dir =
                     new ClusterChainDirectory(chain, false);
 
             /* add "." entry */
 
-            FatDirectoryEntry dot = FatDirectoryEntry.Create(true);
-            dot.SetShortName(ShortName.DOT);
+            var dot = FatDirectoryEntry.Create(true);
+            dot.SetShortName(ShortName.Dot);
             dot.SetStartCluster(dir.GetStorageCluster());
             CopyDateTimeFields(entry, dot);
             dir.AddEntry(dot);
 
             /* add ".." entry */
 
-            FatDirectoryEntry dotDot = FatDirectoryEntry.Create(true);
-            dotDot.SetShortName(ShortName.DOT_DOT);
+            var dotDot = FatDirectoryEntry.Create(true);
+            dotDot.SetShortName(ShortName.DotDot);
             dotDot.SetStartCluster(GetStorageCluster());
             CopyDateTimeFields(entry, dotDot);
             dir.AddEntry(dotDot);

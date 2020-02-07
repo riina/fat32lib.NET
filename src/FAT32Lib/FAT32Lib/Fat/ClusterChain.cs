@@ -116,7 +116,7 @@ namespace FAT32Lib.Fat {
         /// <exception cref="IOException">IOException on error setting the new size</exception>
         /// <seealso cref="SetChainLength(int)"/>
         public long SetSize(long size) {
-            long nrClusters = ((size + clusterSize - 1) / clusterSize);
+            var nrClusters = ((size + clusterSize - 1) / clusterSize);
             if (nrClusters > int.MaxValue)
                 throw new IOException("too many clusters");
 
@@ -132,7 +132,7 @@ namespace FAT32Lib.Fat {
         public int GetChainLength() {
             if (GetStartCluster() == 0) return 0;
 
-            long[] chain = GetFat().GetChain(GetStartCluster());
+            var chain = GetFat().GetChain(GetStartCluster());
             return chain.Length;
         }
 
@@ -151,16 +151,16 @@ namespace FAT32Lib.Fat {
                 /* nothing to do */
             }
             else if ((this.startCluster == 0) && (nrClusters > 0)) {
-                long[] chain = fat.AllocNew(nrClusters);
+                var chain = fat.AllocNew(nrClusters);
                 startCluster = chain[0];
             }
             else {
-                long[] chain = fat.GetChain(startCluster);
+                var chain = fat.GetChain(startCluster);
 
                 if (nrClusters != chain.Length) {
                     if (nrClusters > chain.Length) {
                         /* grow the chain */
-                        int count = nrClusters - chain.Length;
+                        var count = nrClusters - chain.Length;
 
                         while (count > 0) {
                             fat.AllocAppend(GetStartCluster());
@@ -171,12 +171,12 @@ namespace FAT32Lib.Fat {
                         /* shrink the chain */
                         if (nrClusters > 0) {
                             fat.SetEof(chain[nrClusters - 1]);
-                            for (int i = nrClusters; i < chain.Length; i++) {
+                            for (var i = nrClusters; i < chain.Length; i++) {
                                 fat.SetFree(chain[i]);
                             }
                         }
                         else {
-                            for (int i = 0; i < chain.Length; i++) {
+                            for (var i = 0; i < chain.Length; i++) {
                                 fat.SetFree(chain[i]);
                             }
 
@@ -189,17 +189,17 @@ namespace FAT32Lib.Fat {
 
         public void ReadData(long offset, MemoryStream dest) {
 
-            int len = (int)(dest.Length - dest.Position);
+            var len = (int)(dest.Length - dest.Position);
 
             if ((startCluster == 0 && len > 0)) throw new EndOfStreamException();
 
-            long[] chain = GetFat().GetChain(startCluster);
-            IBlockDevice dev = GetDevice();
+            var chain = GetFat().GetChain(startCluster);
+            var dev = GetDevice();
 
-            int chainIdx = (int)(offset / clusterSize);
+            var chainIdx = (int)(offset / clusterSize);
             if (offset % clusterSize != 0) {
-                int clusOfs = (int)(offset % clusterSize);
-                int size = Math.Min(len,
+                var clusOfs = (int)(offset % clusterSize);
+                var size = Math.Min(len,
                         (int)(clusterSize - (offset % clusterSize) - 1));
                 dest.SetLength(dest.Position + size);
 
@@ -211,7 +211,7 @@ namespace FAT32Lib.Fat {
             }
 
             while (len > 0) {
-                int size = Math.Min(clusterSize, len);
+                var size = Math.Min(clusterSize, len);
                 dest.SetLength(dest.Position + size);
 
                 dev.Read(GetDevOffset(chain[chainIdx], 0), dest);
@@ -233,21 +233,21 @@ namespace FAT32Lib.Fat {
         /// <exception cref="IOException">IOException on write error</exception>
         public void WriteData(long offset, MemoryStream srcBuf) {
 
-            int len = (int)(srcBuf.Length - srcBuf.Position);
+            var len = (int)(srcBuf.Length - srcBuf.Position);
 
             if (len == 0) return;
 
-            long minSize = offset + len;
+            var minSize = offset + len;
             if (GetLengthOnDisk() < minSize) {
                 SetSize(minSize);
             }
 
-            long[] chain = fat.GetChain(GetStartCluster());
+            var chain = fat.GetChain(GetStartCluster());
 
-            int chainIdx = (int)(offset / clusterSize);
+            var chainIdx = (int)(offset / clusterSize);
             if (offset % clusterSize != 0) {
-                int clusOfs = (int)(offset % clusterSize);
-                int size = Math.Min(len,
+                var clusOfs = (int)(offset % clusterSize);
+                var size = Math.Min(len,
                         (int)(clusterSize - (offset % clusterSize)));
                 srcBuf.SetLength(srcBuf.Position + size);
 
@@ -259,7 +259,7 @@ namespace FAT32Lib.Fat {
             }
 
             while (len > 0) {
-                int size = Math.Min(clusterSize, len);
+                var size = Math.Min(clusterSize, len);
                 srcBuf.SetLength(srcBuf.Position + size);
 
                 device.Write(GetDevOffset(chain[chainIdx], 0), srcBuf);

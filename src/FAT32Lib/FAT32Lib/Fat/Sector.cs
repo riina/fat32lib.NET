@@ -32,15 +32,15 @@ namespace FAT32Lib.Fat {
         /// <summary>
         /// The buffer holding the contents of this <see cref="Sector"/>.
         /// </summary>
-        protected readonly MemoryStream buffer;
+        protected readonly MemoryStream Buffer;
 
         private bool dirty;
 
         protected Sector(IBlockDevice device, long offset, int size) {
             this.offset = offset;
             this.device = device;
-            byte[] buf = new byte[size];
-            buffer = new MemoryStream(buf);
+            var buf = new byte[size];
+            Buffer = new MemoryStream(buf);
             dirty = true;
         }
 
@@ -51,8 +51,8 @@ namespace FAT32Lib.Fat {
         /// <exception cref="IOException">IOException on read error</exception>
         /// <seealso cref="IsDirty"/>
         protected void Read() {
-            buffer.Position = 0;
-            device.Read(offset, buffer);
+            Buffer.Position = 0;
+            device.Read(offset, Buffer);
             dirty = false;
         }
 
@@ -75,49 +75,49 @@ namespace FAT32Lib.Fat {
         public void Write() {
             if (!IsDirty()) return;
 
-            buffer.Position = 0;
-            device.Write(offset, buffer);
+            Buffer.Position = 0;
+            device.Write(offset, Buffer);
             dirty = false;
         }
 
         protected int Get16(int offset) {
-            byte[] b = new byte[2];
-            buffer.Position = offset;
-            buffer.Read(b, 0, 2);
+            var b = new byte[2];
+            Buffer.Position = offset;
+            Buffer.Read(b, 0, 2);
             if (!BitConverter.IsLittleEndian)
                 Array.Reverse(b, 0, 2);
             return BitConverter.ToUInt16(b, 0);
         }
 
         protected long Get32(int offset) {
-            byte[] b = new byte[4];
-            buffer.Position = offset;
-            buffer.Read(b, 0, 4);
+            var b = new byte[4];
+            Buffer.Position = offset;
+            Buffer.Read(b, 0, 4);
             if (!BitConverter.IsLittleEndian)
                 Array.Reverse(b, 0, 4);
             return BitConverter.ToUInt32(b, 0);
         }
 
         protected int Get8(int offset) {
-            buffer.Position = offset;
-            return buffer.ReadByte();
+            Buffer.Position = offset;
+            return Buffer.ReadByte();
         }
 
         protected void Set16(int offset, int value) {
-            byte[] b = BitConverter.GetBytes((short)value);
+            var b = BitConverter.GetBytes((short)value);
             if (!BitConverter.IsLittleEndian)
                 Array.Reverse(b, 0, 2);
-            buffer.Position = offset;
-            buffer.Write(b, 0, 2);
+            Buffer.Position = offset;
+            Buffer.Write(b, 0, 2);
             dirty = true;
         }
 
         protected void Set32(int offset, long value) {
-            byte[] b = BitConverter.GetBytes((int)value);
+            var b = BitConverter.GetBytes((int)value);
             if (!BitConverter.IsLittleEndian)
                 Array.Reverse(b, 0, 4);
-            buffer.Position = offset;
-            buffer.Write(b, 0, 4);
+            Buffer.Position = offset;
+            Buffer.Write(b, 0, 4);
             dirty = true;
         }
 
@@ -126,8 +126,8 @@ namespace FAT32Lib.Fat {
                 throw new ArgumentException(
                         value + " too big to be stored in a single octet");
             }
-            buffer.Position = offset;
-            buffer.WriteByte((byte)value);
+            Buffer.Position = offset;
+            Buffer.WriteByte((byte)value);
             dirty = true;
         }
 
